@@ -32,7 +32,7 @@ function getPreMatchPrediction(game, teamStats){
   const hStats=hKey?teamStats[hKey]:null;
   const aStats=aKey?teamStats[aKey]:null;
   if(!hStats?.ppg||!aStats?.ppg) return null;
-  const proj=+((hStats.ppg+aStats.ppg)*0.95).toFixed(1);
+  const proj=+((hStats.ppg+aStats.ppg)*1.0).toFixed(1);
   return{proj,homePpg:hStats.ppg,awayPpg:aStats.ppg};
 }
 
@@ -83,10 +83,7 @@ function TeamLogo({name,size=32}){
 function PreMatchCard({game, teamStats}){
   const pred = getPreMatchPrediction(game, teamStats);
   return(
-    <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:13,padding:"15px 17px",boxShadow:"0 1px 6px #00000008",position:"relative"}}>
-      <div style={{position:"absolute",top:11,right:12}}>
-        <span style={{color:"#888",fontSize:9,fontFamily:"monospace",fontWeight:700}}>{game.time?.slice(11,16)} ET</span>
-      </div>
+    <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:13,padding:"15px 17px",boxShadow:"0 1px 6px #00000008"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <TeamLogo name={game.awayFull} size={36}/>
@@ -94,6 +91,7 @@ function PreMatchCard({game, teamStats}){
         </div>
         <div style={{textAlign:"center"}}>
           <div style={{color:"#111",fontSize:18,fontWeight:900}}>VS</div>
+          <div style={{color:"#888",fontSize:10,fontWeight:700,fontFamily:"monospace"}}>{game.time?.slice(11,16)} ET</div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span>
@@ -117,7 +115,7 @@ function PreMatchCard({game, teamStats}){
                 <div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.homePpg}</div>
               </div>
             </div>
-            {game.total && (
+            {game.total ? (
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div style={{fontSize:10,color:"#555",fontWeight:700,fontFamily:"monospace"}}>LINE: {game.total}</div>
                 <div style={{
@@ -130,12 +128,11 @@ function PreMatchCard({game, teamStats}){
                   {pred.proj>game.total?"📈 OVER PRÉVU":"📉 UNDER PRÉVU"}
                 </div>
               </div>
-            )}
-            {!game.total && (
+            ):(
               <div style={{color:"#aaa",fontSize:9,fontFamily:"monospace",textAlign:"center"}}>Line non disponible</div>
             )}
           </>
-        ) : (
+        ):(
           <div style={{color:"#aaa",fontSize:9,fontFamily:"monospace",textAlign:"center",padding:"8px 0"}}>Stats en chargement...</div>
         )}
       </div>
@@ -210,7 +207,6 @@ export default function App(){
       }
       setLastUpdate(new Date().toLocaleTimeString("fr-CA"));
       setStatus("ok");
-      // Stats en arrière-plan — pas bloquant
       try{
         const statsRes = await fetch(`${PROXY}/nba/stats`);
         const stats = await statsRes.json();
