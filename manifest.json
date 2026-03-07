@@ -3,8 +3,8 @@
   "name": "NBA × NHL Signals",
   "icons": [
     {
-      "src": "logo.svg",
-      "sizes": "any",
+     "src": "public/logo.svg",
+    "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
