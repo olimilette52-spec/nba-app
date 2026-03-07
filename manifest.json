@@ -1,16 +1,16 @@
 {
-  "name": "NBA × Polymarket",
-  "short_name": "NBA Bets",
-  "description": "Live betting signals NBA sur Polymarket",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#060606",
-  "theme_color": "#060606",
+  "short_name": "Signals",
+  "name": "NBA × NHL Signals",
   "icons": [
     {
-      "src": "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f3c0.png",
-      "sizes": "64x64",
-      "type": "image/png"
+      "src": "logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1a1a2e",
+  "background_color": "#1a1a2e"
 }
