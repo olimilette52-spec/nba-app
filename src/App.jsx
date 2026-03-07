@@ -355,7 +355,8 @@ function NHLPreMatchCard({game,nhlStats}){
             {/* Gagnant */}
             <div style={{borderTop:"1px solid #e8e8e8",paddingTop:8,display:"flex",justifyContent:"center"}}>
               <div style={{background:pred.isOT?"#e67e0015":"#00aa5515",border:`1px solid ${pred.isOT?"#e67e0030":"#00aa5530"}`,borderRadius:6,padding:"4px 14px",color:pred.isOT?"#e67e00":"#007733",fontSize:11,fontWeight:900}}>
-                {pred.isOT?"PROL. PROBABLE ⚡ → OVER AUTO":`${pred.winner} GAGNE 🏆`}
+                {pred.isOT?" OVER AUTO ⚡
+ → OVER AUTO":`${pred.winner} GAGNE 🏆`}
               </div>
             </div>
           </>
