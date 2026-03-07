@@ -32,8 +32,39 @@ function getPreMatchPrediction(game, teamStats){
   const hStats=hKey?teamStats[hKey]:null;
   const aStats=aKey?teamStats[aKey]:null;
   if(!hStats?.ppg||!aStats?.ppg) return null;
-  const proj=+((hStats.ppg+aStats.ppg)*1.0).toFixed(1);
-  return{proj,homePpg:hStats.ppg,awayPpg:aStats.ppg};
+
+  // Formule avancée
+  const homeOffense = hStats.ppg;
+  const awayOffense = aStats.ppg;
+  const homeDefense = hStats.oppg || hStats.ppg;
+  const awayDefense = aStats.oppg || aStats.ppg;
+
+  // Projection basée sur offense vs défense adverse
+  const homeExpected = (homeOffense + awayDefense) / 2 + 1.6; // +1.6 avantage domicile
+  const awayExpected = (awayOffense + homeDefense) / 2;
+  let proj = homeExpected + awayExpected;
+
+  // Ajustement forme récente
+  if(hStats.recentPts && aStats.recentPts){
+    const recentAvg = (hStats.recentPts + aStats.recentPts) / 2;
+    const seasonAvg = proj;
+    proj = seasonAvg * 0.65 + recentAvg * 0.35;
+  }
+
+  // Ajustement back-to-back (-3.5 pts par équipe fatiguée)
+  if(hStats.backToBack) proj -= 3.5;
+  if(aStats.backToBack) proj -= 3.5;
+
+  return{
+    proj: +proj.toFixed(1),
+    homePpg: hStats.ppg,
+    awayPpg: aStats.ppg,
+    homeOppg: hStats.oppg,
+    awayOppg: aStats.oppg,
+    homeB2B: hStats.backToBack,
+    awayB2B: aStats.backToBack,
+    recentUsed: !!(hStats.recentPts && aStats.recentPts),
+  };
 }
 
 function getLiveSignal(game){
@@ -87,14 +118,20 @@ function PreMatchCard({game, teamStats}){
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <TeamLogo name={game.awayFull} size={36}/>
-          <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span>
+          <div>
+            <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span>
+            {pred?.awayB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>😴 B2B</div>}
+          </div>
         </div>
         <div style={{textAlign:"center"}}>
           <div style={{color:"#111",fontSize:18,fontWeight:900}}>VS</div>
           <div style={{color:"#888",fontSize:10,fontWeight:700,fontFamily:"monospace"}}>{game.time?.slice(11,16)} ET</div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span>
+          <div style={{textAlign:"right"}}>
+            <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span>
+            {pred?.homeB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>😴 B2B</div>}
+          </div>
           <TeamLogo name={game.homeFull} size={36}/>
         </div>
       </div>
@@ -105,14 +142,17 @@ function PreMatchCard({game, teamStats}){
               <div style={{textAlign:"center"}}>
                 <div style={{color:"#777",fontSize:8,fontFamily:"monospace"}}>MOY {game.away}</div>
                 <div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.awayPpg}</div>
+                {pred.awayOppg&&<div style={{color:"#aaa",fontSize:8}}>DEF {pred.awayOppg}</div>}
               </div>
               <div style={{textAlign:"center"}}>
                 <div style={{color:"#777",fontSize:8,fontFamily:"monospace"}}>PROJECTION</div>
                 <div style={{color:"#7c3aed",fontSize:20,fontWeight:900}}>{pred.proj}</div>
+                {pred.recentUsed&&<div style={{color:"#aaa",fontSize:7}}>✓ forme récente</div>}
               </div>
               <div style={{textAlign:"center"}}>
                 <div style={{color:"#777",fontSize:8,fontFamily:"monospace"}}>MOY {game.home}</div>
                 <div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.homePpg}</div>
+                {pred.homeOppg&&<div style={{color:"#aaa",fontSize:8}}>DEF {pred.homeOppg}</div>}
               </div>
             </div>
             {game.total ? (
