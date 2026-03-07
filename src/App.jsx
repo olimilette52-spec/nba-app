@@ -19,6 +19,12 @@ function getLogoUrl(teamName){
   return id?`https://cdn.nba.com/logos/nba/${id}/global/L/logo.svg`:null;
 }
 
+function toQcTime(isoDate){
+  if(!isoDate) return "";
+  const d = new Date(isoDate);
+  return d.toLocaleTimeString("fr-CA",{hour:"2-digit",minute:"2-digit",timeZone:"America/Toronto"});
+}
+
 const Q=12,TOTAL_MIN=48;
 function pt(t){if(!t||t==="0:00")return 0;const[m,s]=String(t).split(":").map(Number);return(m||0)+(s||0)/60;}
 function played(q,tl){return(q-1)*Q+(Q-pt(tl));}
@@ -27,26 +33,25 @@ function qMult(q,tl){const r=pt(tl);if(q===4&&r<2)return 0.65;if(q===4&&r<4)retu
 
 function getPreMatchPrediction(game, teamStats){
   if(!teamStats) return null;
-  const hKey=Object.keys(teamStats).find(k=>k===game.home||game.homeFull.includes(k)||k.includes(game.home));
-  const aKey=Object.keys(teamStats).find(k=>k===game.away||game.awayFull.includes(k)||k.includes(game.away));
+  const hKey=Object.keys(teamStats).find(k=>game.homeFull.includes(k)||k===game.home);
+  const aKey=Object.keys(teamStats).find(k=>game.awayFull.includes(k)||k===game.away);
   const hStats=hKey?teamStats[hKey]:null;
   const aStats=aKey?teamStats[aKey]:null;
   if(!hStats?.ppg||!aStats?.ppg) return null;
 
-  // Formule avancée offense vs défense
+  // Formule offensive vs défensive
   const homeExpected = (hStats.ppg + aStats.oppg) / 2 + 1.6;
   const awayExpected = (aStats.ppg + hStats.oppg) / 2;
   let proj = homeExpected + awayExpected;
 
-  // Ajustement pace — si les 2 équipes jouent vite, total monte
+  // Ajustement pace
   if(hStats.pace && aStats.pace){
     const avgPace = (hStats.pace + aStats.pace) / 2;
     const leaguePace = 98.5;
-    const paceAdj = (avgPace - leaguePace) * 0.8;
-    proj += paceAdj;
+    proj += (avgPace - leaguePace) * 0.8;
   }
 
-  // Ajustement forme récente (35% du poids)
+  // Forme récente 35%
   if(hStats.recentPts && aStats.recentPts){
     const recentAvg = (hStats.recentPts + aStats.recentPts) / 2;
     proj = proj * 0.65 + recentAvg * 0.35;
@@ -56,26 +61,37 @@ function getPreMatchPrediction(game, teamStats){
   if(hStats.backToBack) proj -= 3.5;
   if(aStats.backToBack) proj -= 3.5;
 
-  // Projection scores individuels pour spread
-  const homeProjScore = +(homeExpected * (proj / (homeExpected + awayExpected))).toFixed(1);
-  const awayProjScore = +(awayExpected * (proj / (homeExpected + awayExpected))).toFixed(1);
-  const projDiff = +(homeProjScore - awayProjScore).toFixed(1);
+  // Scores individuels projetés
+  const ratio = homeExpected / (homeExpected + awayExpected);
+  const homeProjScore = Math.round(proj * ratio);
+  const awayProjScore = Math.round(proj - homeProjScore);
+  const projDiff = homeProjScore - awayProjScore;
 
   // Spread coverage
   let spreadCover = null;
   if(game.spread !== null && game.spreadTeam){
-    const favoriteIsHome = game.homeFull.includes(game.spreadTeam) || game.home === game.spreadTeam;
+    const favoriteIsHome = game.home === game.spreadTeam || game.homeFull.includes(game.spreadTeam);
     if(favoriteIsHome){
-      spreadCover = projDiff >= Math.abs(game.spread) ? game.home : game.away;
-      spreadCover = projDiff >= Math.abs(game.spread) ? {team: game.home, covers: true} : {team: game.away, covers: false};
+      const covers = projDiff >= Math.abs(game.spread);
+      spreadCover = covers
+        ? {team: game.home, covers: true}
+        : {team: game.away, covers: true, isUnderdog: true};
     } else {
       const awayDiff = awayProjScore - homeProjScore;
-      spreadCover = awayDiff >= Math.abs(game.spread) ? {team: game.away, covers: true} : {team: game.home, covers: false};
+      const covers = awayDiff >= Math.abs(game.spread);
+      spreadCover = covers
+        ? {team: game.away, covers: true}
+        : {team: game.home, covers: true, isUnderdog: true};
     }
   }
 
+  // Gagnant prévu
+  const winner = homeProjScore >= awayProjScore ? game.home : game.away;
+
   return{
     proj: +proj.toFixed(1),
+    homeProjScore,
+    awayProjScore,
     homePpg: hStats.ppg,
     awayPpg: aStats.ppg,
     homeOppg: hStats.oppg,
@@ -86,6 +102,7 @@ function getPreMatchPrediction(game, teamStats){
     paceUsed: !!(hStats.pace && aStats.pace),
     projDiff,
     spreadCover,
+    winner,
   };
 }
 
@@ -109,7 +126,7 @@ function getLiveSignal(game){
   else if(edge>5&&conf>=40){type="OVER";label="📈 OVER";}
   else if(edge<-12&&conf>=55){type="STRONG_UNDER";label="❄️ STRONG UNDER";}
   else if(edge<-5&&conf>=40){type="UNDER";label="📉 UNDER";}
-  else{type="NEUTRAL";label="⚖️ NEUTRE";}
+  else{type="NEUTRAL",label="⚖️ NEUTRE";}
   return{type,label,edge,confidence:conf,projection:proj,remaining:+r.toFixed(1)};
 }
 
@@ -135,6 +152,10 @@ function TeamLogo({name,size=32}){
 }
 function PreMatchCard({game, teamStats}){
   const pred = getPreMatchPrediction(game, teamStats);
+  const favoriteIsHome = game.spreadTeam && (game.home === game.spreadTeam || game.homeFull.includes(game.spreadTeam));
+  const homeSpread = game.spread ? (favoriteIsHome ? -Math.abs(game.spread) : +Math.abs(game.spread)) : null;
+  const awaySpread = game.spread ? (favoriteIsHome ? +Math.abs(game.spread) : -Math.abs(game.spread)) : null;
+
   return(
     <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:13,padding:"15px 17px",boxShadow:"0 1px 6px #00000008"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
@@ -147,7 +168,7 @@ function PreMatchCard({game, teamStats}){
         </div>
         <div style={{textAlign:"center"}}>
           <div style={{color:"#111",fontSize:18,fontWeight:900}}>VS</div>
-          <div style={{color:"#888",fontSize:10,fontWeight:700,fontFamily:"monospace"}}>{game.time?.slice(11,16)} ET</div>
+          <div style={{color:"#888",fontSize:10,fontWeight:700,fontFamily:"monospace"}}>{toQcTime(game.time)} HE</div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <div style={{textAlign:"right"}}>
@@ -157,10 +178,12 @@ function PreMatchCard({game, teamStats}){
           <TeamLogo name={game.homeFull} size={36}/>
         </div>
       </div>
+
       <div style={{background:"#f4f4f4",borderRadius:10,padding:"10px 12px"}}>
         {pred ? (
           <>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:8}}>
+            {/* Stats */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
               <div style={{textAlign:"center"}}>
                 <div style={{color:"#777",fontSize:8,fontFamily:"monospace"}}>MOY {game.away}</div>
                 <div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.awayPpg}</div>
@@ -180,6 +203,29 @@ function PreMatchCard({game, teamStats}){
                 {pred.homeOppg&&<div style={{color:"#aaa",fontSize:8}}>DEF {pred.homeOppg}</div>}
               </div>
             </div>
+
+            {/* Score final prévu */}
+            <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:8,padding:"8px 12px",marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{color:"#777",fontSize:8,marginBottom:4,fontFamily:"monospace"}}>SCORE PRÉVU</div>
+                <div style={{display:"flex",alignItems:"center",gap:10}}>
+                  <div style={{textAlign:"center"}}>
+                    <div style={{color:"#888",fontSize:8}}>{game.away}</div>
+                    <div style={{color:pred.awayProjScore>pred.homeProjScore?"#007733":"#cc3300",fontSize:24,fontWeight:900,lineHeight:1}}>{pred.awayProjScore}</div>
+                  </div>
+                  <div style={{color:"#ccc",fontSize:16,fontWeight:700}}>—</div>
+                  <div style={{textAlign:"center"}}>
+                    <div style={{color:"#888",fontSize:8}}>{game.home}</div>
+                    <div style={{color:pred.homeProjScore>pred.awayProjScore?"#007733":"#cc3300",fontSize:24,fontWeight:900,lineHeight:1}}>{pred.homeProjScore}</div>
+                  </div>
+                </div>
+              </div>
+              <div style={{background:"#00aa5515",border:"1px solid #00aa5530",borderRadius:6,padding:"4px 10px",color:"#007733",fontSize:11,fontWeight:900}}>
+                {pred.winner} GAGNE 🏆
+              </div>
+            </div>
+
+            {/* Total */}
             {game.total&&(
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                 <div style={{fontSize:10,color:"#555",fontWeight:700,fontFamily:"monospace"}}>TOTAL: {game.total}</div>
@@ -194,30 +240,39 @@ function PreMatchCard({game, teamStats}){
                 </div>
               </div>
             )}
-            {game.spread!==null&&game.spreadTeam&&(
-              <div style={{borderTop:"1px solid #e0e0e0",paddingTop:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div>
-                  <div style={{color:"#777",fontSize:8,marginBottom:2}}>SPREAD</div>
-                  <div style={{color:"#111",fontSize:11,fontWeight:800}}>{game.spreadTeam} {game.spread>0?"+":""}{game.spread}</div>
-                </div>
-                <div style={{textAlign:"center"}}>
-                  <div style={{color:"#777",fontSize:8,marginBottom:2}}>PROJ ÉCART</div>
-                  <div style={{color:"#555",fontSize:11,fontWeight:700}}>{pred.projDiff>0?"+":""}{pred.projDiff} pts</div>
+
+            {/* Spread */}
+            {game.spread!==null&&game.spreadTeam&&homeSpread!==null&&(
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                  <div style={{
+                    background:awaySpread>0?"#00aa5515":"#ff330015",
+                    border:`1px solid ${awaySpread>0?"#00aa5530":"#ff330030"}`,
+                    borderRadius:6,padding:"3px 8px",
+                    color:awaySpread>0?"#007733":"#cc3300",
+                    fontSize:10,fontWeight:800
+                  }}>{game.away} {awaySpread>0?"+":""}{awaySpread}</div>
+                  <div style={{
+                    background:homeSpread>0?"#00aa5515":"#ff330015",
+                    border:`1px solid ${homeSpread>0?"#00aa5530":"#ff330030"}`,
+                    borderRadius:6,padding:"3px 8px",
+                    color:homeSpread>0?"#007733":"#cc3300",
+                    fontSize:10,fontWeight:800
+                  }}>{game.home} {homeSpread>0?"+":""}{homeSpread}</div>
                 </div>
                 {pred.spreadCover&&(
                   <div style={{
                     background:pred.spreadCover.covers?"#00aa5515":"#ff330015",
                     border:`1px solid ${pred.spreadCover.covers?"#00aa5530":"#ff330025"}`,
-                    borderRadius:6,padding:"4px 10px",
+                    borderRadius:6,padding:"3px 8px",
                     color:pred.spreadCover.covers?"#007733":"#cc3300",
-                    fontSize:11,fontWeight:900
+                    fontSize:10,fontWeight:800
                   }}>
                     {pred.spreadCover.covers?`${pred.spreadCover.team} COUVRE ✓`:`${pred.spreadCover.team} NE COUVRE ✗`}
                   </div>
                 )}
               </div>
             )}
-            {!game.total&&<div style={{color:"#aaa",fontSize:9,fontFamily:"monospace",textAlign:"center"}}>Line non disponible</div>}
           </>
         ):(
           <div style={{color:"#aaa",fontSize:9,fontFamily:"monospace",textAlign:"center",padding:"8px 0"}}>Stats en chargement...</div>
@@ -292,7 +347,8 @@ export default function App(){
       if(!selectedId&&scores.length>0){
         setSelectedId((scores.find(g=>g.isLive)||scores[0]).id);
       }
-      setLastUpdate(new Date().toLocaleTimeString("fr-CA"));
+      const now = new Date().toLocaleTimeString("fr-CA",{timeZone:"America/Toronto"});
+      setLastUpdate(now);
       setStatus("ok");
       try{
         const statsRes = await fetch(`${PROXY}/nba/stats`);
