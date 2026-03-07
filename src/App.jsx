@@ -32,17 +32,16 @@ function getNBALogo(teamName){
 }
 
 function getNHLLogo(teamName){
-  const abbr = NHL_ABBRS[teamName] || teamName;
-  return `https://assets.nhle.com/logos/nhl/svg/${abbr}_light.svg`;
+  const abbr=NHL_ABBRS[teamName]||teamName;
+  return`https://assets.nhle.com/logos/nhl/svg/${abbr}_light.svg`;
 }
 
 function toQcTime(isoDate){
   if(!isoDate) return "";
-  const d = new Date(isoDate);
+  const d=new Date(isoDate);
   return d.toLocaleTimeString("fr-CA",{hour:"2-digit",minute:"2-digit",timeZone:"America/Toronto"});
 }
 
-// NBA Signal
 const Q=12,TOTAL_MIN=48;
 function pt(t){if(!t||t==="0:00")return 0;const[m,s]=String(t).split(":").map(Number);return(m||0)+(s||0)/60;}
 function played(q,tl){return(q-1)*Q+(Q-pt(tl));}
@@ -50,9 +49,7 @@ function remaining(q,tl){return Math.max(0,TOTAL_MIN-played(q,tl));}
 function qMult(q,tl){const r=pt(tl);if(q===4&&r<2)return 0.65;if(q===4&&r<4)return 0.78;if(q===4)return 0.90;return 1.0;}
 
 function getLiveSignalNBA(game){
-  if(!game.isLive||!game.total||(!game.homeScore&&!game.awayScore)){
-    return{type:"SCHEDULED",label:"🕐 À VENIR",edge:0,confidence:0,projection:0};
-  }
+  if(!game.isLive||!game.total||(!game.homeScore&&!game.awayScore))return{type:"SCHEDULED",label:"🕐 À VENIR",edge:0,confidence:0,projection:0};
   const scored=game.homeScore+game.awayScore;
   const p=played(game.quarter,game.timeLeft);
   const r=remaining(game.quarter,game.timeLeft);
@@ -73,12 +70,9 @@ function getLiveSignalNBA(game){
   return{type,label,edge,confidence:conf,projection:proj};
 }
 
-// NHL Signal
-const PERIOD_MIN=20,TOTAL_PERIODS=3,TOTAL_NHL=60;
+const PERIOD_MIN=20,TOTAL_NHL=60;
 function getLiveSignalNHL(game){
-  if(!game.isLive||!game.total){
-    return{type:"SCHEDULED",label:"🕐 À VENIR",edge:0,confidence:0,projection:0};
-  }
+  if(!game.isLive||!game.total)return{type:"SCHEDULED",label:"🕐 À VENIR",edge:0,confidence:0,projection:0};
   const scored=game.homeScore+game.awayScore;
   const p=((game.period-1)*PERIOD_MIN)+(PERIOD_MIN-pt(game.timeLeft));
   const r=Math.max(0,TOTAL_NHL-p);
@@ -99,20 +93,20 @@ function getLiveSignalNHL(game){
   return{type,label,edge,confidence:conf,projection:proj};
 }
 
-function getNBAPreMatch(game, teamStats){
-  if(!teamStats) return null;
+function getNBAPreMatch(game,teamStats){
+  if(!teamStats)return null;
   const hKey=Object.keys(teamStats).find(k=>game.homeFull.includes(k)||k===game.home);
   const aKey=Object.keys(teamStats).find(k=>game.awayFull.includes(k)||k===game.away);
   const hStats=hKey?teamStats[hKey]:null;
   const aStats=aKey?teamStats[aKey]:null;
-  if(!hStats?.ppg||!aStats?.ppg) return null;
+  if(!hStats?.ppg||!aStats?.ppg)return null;
   const homeExpected=(hStats.ppg+aStats.oppg)/2+1.6;
   const awayExpected=(aStats.ppg+hStats.oppg)/2;
   let proj=homeExpected+awayExpected;
-  if(hStats.pace&&aStats.pace) proj+=(((hStats.pace+aStats.pace)/2)-98.5)*0.8;
-  if(hStats.recentPts&&aStats.recentPts) proj=proj*0.65+((hStats.recentPts+aStats.recentPts)/2)*0.35;
-  if(hStats.backToBack) proj-=3.5;
-  if(aStats.backToBack) proj-=3.5;
+  if(hStats.pace&&aStats.pace)proj+=(((hStats.pace+aStats.pace)/2)-98.5)*0.8;
+  if(hStats.recentPts&&aStats.recentPts)proj=proj*0.65+((hStats.recentPts+aStats.recentPts)/2)*0.35;
+  if(hStats.backToBack)proj-=3.5;
+  if(aStats.backToBack)proj-=3.5;
   const ratio=homeExpected/(homeExpected+awayExpected);
   const homeProjScore=Math.round(proj*ratio);
   const awayProjScore=Math.round(proj-homeProjScore);
@@ -122,38 +116,40 @@ function getNBAPreMatch(game, teamStats){
     const favHome=game.home===game.spreadTeam||game.homeFull.includes(game.spreadTeam);
     if(favHome){
       spreadCover=projDiff>=Math.abs(game.spread)?{team:game.home,covers:true}:{team:game.away,covers:true,isUnderdog:true};
-    } else {
+    }else{
       const awayDiff=awayProjScore-homeProjScore;
       spreadCover=awayDiff>=Math.abs(game.spread)?{team:game.away,covers:true}:{team:game.home,covers:true,isUnderdog:true};
     }
   }
-  return{proj:+proj.toFixed(1),homeProjScore,awayProjScore,homePpg:hStats.ppg,awayPpg:aStats.ppg,homeOppg:hStats.oppg,awayOppg:aStats.oppg,homeB2B:hStats.backToBack,awayB2B:aStats.backToBack,recentUsed:!!(hStats.recentPts&&aStats.recentPts),paceUsed:!!(hStats.pace&&aStats.pace),projDiff,spreadCover,winner:homeProjScore>=awayProjScore?game.home:game.away};
+  return{proj:+proj.toFixed(1),homeProjScore,awayProjScore,homePpg:hStats.ppg,awayPpg:aStats.ppg,homeOppg:hStats.oppg,awayOppg:aStats.oppg,homeB2B:hStats.backToBack,awayB2B:aStats.backToBack,recentUsed:!!(hStats.recentPts&&aStats.recentPts),paceUsed:!!(hStats.pace&&aStats.pace),projDiff,spreadCover,winner:homeProjScore>awayProjScore?game.home:awayProjScore>homeProjScore?game.away:null};
 }
 
-function getNHLPreMatch(game, nhlStats){
-  if(!nhlStats) return null;
+function getNHLPreMatch(game,nhlStats){
+  if(!nhlStats)return null;
   const hAbbr=NHL_ABBRS[game.homeFull]||game.home;
   const aAbbr=NHL_ABBRS[game.awayFull]||game.away;
   const hStats=nhlStats[hAbbr];
   const aStats=nhlStats[aAbbr];
-  if(!hStats||!aStats) return null;
+  if(!hStats||!aStats)return null;
   const homeExp=((hStats.gf+aStats.ga)/2)+0.2;
   const awayExp=(aStats.gf+hStats.ga)/2;
-  let proj=homeExp+awayExp;
-  const homeProjScore=+homeExp.toFixed(1);
-  const awayProjScore=+awayExp.toFixed(1);
-  const projDiff=+(homeProjScore-awayProjScore).toFixed(1);
+  const proj=+(homeExp+awayExp).toFixed(1);
+  const homeProjScore=Math.round(homeExp);
+  const awayProjScore=Math.round(awayExp);
+  const projDiff=+(homeExp-awayExp).toFixed(1);
+  const isOT=homeProjScore===awayProjScore;
   let puckCover=null;
   if(game.puckLine&&game.puckLineTeam){
     const favHome=game.home===game.puckLineTeam||game.homeFull.includes(game.puckLineTeam);
     if(favHome){
       puckCover=projDiff>=1.5?{team:game.home,covers:true}:{team:game.away,covers:true,isUnderdog:true};
-    } else {
+    }else{
       const awayDiff=awayProjScore-homeProjScore;
       puckCover=awayDiff>=1.5?{team:game.away,covers:true}:{team:game.home,covers:true,isUnderdog:true};
     }
   }
-  return{proj:+proj.toFixed(1),homeProjScore:Math.round(homeExp),awayProjScore:Math.round(awayExp),homeGF:hStats.gf,awayGF:aStats.gf,homeGA:hStats.ga,awayGA:aStats.ga,projDiff,puckCover,winner:homeExp>=awayExp?game.home:game.away};
+  const winner=isOT?null:homeExp>awayExp?game.home:game.away;
+  return{proj,homeProjScore,awayProjScore,homeGF:hStats.gf,awayGF:aStats.gf,homeGA:hStats.ga,awayGA:aStats.ga,projDiff,puckCover,winner,isOT};
 }
 
 const COLORS={STRONG_OVER:"#007733",OVER:"#009944",NEUTRAL:"#888",UNDER:"#cc3300",STRONG_UNDER:"#aa0022",SCHEDULED:"#aaa"};
@@ -181,11 +177,11 @@ function NHLLogo({name,size=32}){
   const url=getNHLLogo(name);
   return<img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>{e.target.style.display='none';}}/>;
 }
-function NBAPreMatchCard({game, teamStats}){
-  const pred = getNBAPreMatch(game, teamStats);
-  const favoriteIsHome = game.spreadTeam && (game.home === game.spreadTeam || game.homeFull.includes(game.spreadTeam));
-  const homeSpread = game.spread ? (favoriteIsHome ? -Math.abs(game.spread) : +Math.abs(game.spread)) : null;
-  const awaySpread = game.spread ? (favoriteIsHome ? +Math.abs(game.spread) : -Math.abs(game.spread)) : null;
+function NBAPreMatchCard({game,teamStats}){
+  const pred=getNBAPreMatch(game,teamStats);
+  const favoriteIsHome=game.spreadTeam&&(game.home===game.spreadTeam||game.homeFull.includes(game.spreadTeam));
+  const homeSpread=game.spread?(favoriteIsHome?-Math.abs(game.spread):+Math.abs(game.spread)):null;
+  const awaySpread=game.spread?(favoriteIsHome?+Math.abs(game.spread):-Math.abs(game.spread)):null;
   return(
     <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:13,padding:"15px 17px",boxShadow:"0 1px 6px #00000008"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
@@ -243,7 +239,9 @@ function NBAPreMatchCard({game, teamStats}){
                   </div>
                 </div>
               </div>
-              <div style={{background:"#00aa5515",border:"1px solid #00aa5530",borderRadius:6,padding:"4px 10px",color:"#007733",fontSize:11,fontWeight:900}}>{pred.winner} GAGNE 🏆</div>
+              <div style={{background:"#00aa5515",border:"1px solid #00aa5530",borderRadius:6,padding:"4px 10px",color:"#007733",fontSize:11,fontWeight:900}}>
+                {pred.winner?`${pred.winner} GAGNE 🏆`:"SERRÉ 🤔"}
+              </div>
             </div>
             {game.total&&(
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
@@ -275,11 +273,11 @@ function NBAPreMatchCard({game, teamStats}){
   );
 }
 
-function NHLPreMatchCard({game, nhlStats}){
-  const pred = getNHLPreMatch(game, nhlStats);
-  const favHome = game.puckLineTeam && (game.home === game.puckLineTeam || game.homeFull.includes(game.puckLineTeam));
-  const homeSpread = game.puckLine ? (favHome ? -1.5 : +1.5) : null;
-  const awaySpread = game.puckLine ? (favHome ? +1.5 : -1.5) : null;
+function NHLPreMatchCard({game,nhlStats}){
+  const pred=getNHLPreMatch(game,nhlStats);
+  const favHome=game.puckLineTeam&&(game.home===game.puckLineTeam||game.homeFull.includes(game.puckLineTeam));
+  const homeSpread=game.puckLine?(favHome?-1.5:+1.5):null;
+  const awaySpread=game.puckLine?(favHome?+1.5:-1.5):null;
   return(
     <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:13,padding:"15px 17px",boxShadow:"0 1px 6px #00000008"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
@@ -322,16 +320,18 @@ function NHLPreMatchCard({game, nhlStats}){
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <div style={{textAlign:"center"}}>
                     <div style={{color:"#888",fontSize:8}}>{game.away}</div>
-                    <div style={{color:pred.awayProjScore>pred.homeProjScore?"#007733":"#cc3300",fontSize:24,fontWeight:900,lineHeight:1}}>{pred.awayProjScore}</div>
+                    <div style={{color:pred.isOT?"#e67e00":pred.awayProjScore>pred.homeProjScore?"#007733":"#cc3300",fontSize:24,fontWeight:900,lineHeight:1}}>{pred.awayProjScore}</div>
                   </div>
                   <div style={{color:"#ccc",fontSize:16}}>—</div>
                   <div style={{textAlign:"center"}}>
                     <div style={{color:"#888",fontSize:8}}>{game.home}</div>
-                    <div style={{color:pred.homeProjScore>pred.awayProjScore?"#007733":"#cc3300",fontSize:24,fontWeight:900,lineHeight:1}}>{pred.homeProjScore}</div>
+                    <div style={{color:pred.isOT?"#e67e00":pred.homeProjScore>pred.awayProjScore?"#007733":"#cc3300",fontSize:24,fontWeight:900,lineHeight:1}}>{pred.homeProjScore}</div>
                   </div>
                 </div>
               </div>
-              <div style={{background:"#00aa5515",border:"1px solid #00aa5530",borderRadius:6,padding:"4px 10px",color:"#007733",fontSize:11,fontWeight:900}}>{pred.winner} GAGNE 🏆</div>
+              <div style={{background:pred.isOT?"#e67e0015":"#00aa5515",border:`1px solid ${pred.isOT?"#e67e0030":"#00aa5530"}`,borderRadius:6,padding:"4px 10px",color:pred.isOT?"#e67e00":"#007733",fontSize:11,fontWeight:900}}>
+                {pred.isOT?"PROL. POSSIBLE ⚡":`${pred.winner} GAGNE 🏆`}
+              </div>
             </div>
             {game.total&&(
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
@@ -449,7 +449,7 @@ export default function App(){
   const[status,setStatus]=useState("loading");
   const[lastUpdate,setLastUpdate]=useState(null);
 
-  const loadData = async()=>{
+  const loadData=async()=>{
     try{
       const[nbaRes,nhlRes,statsRes,nhlStatsRes]=await Promise.all([
         fetch(`${PROXY}/nba/scores`),
@@ -460,11 +460,11 @@ export default function App(){
       const[nba,nhl,stats,nhlS]=await Promise.all([nbaRes.json(),nhlRes.json(),statsRes.json(),nhlStatsRes.json()]);
       if(Array.isArray(nba)){
         setNbaGames(nba);
-        if(!selectedNBAId&&nba.length>0) setSelectedNBAId((nba.find(g=>g.isLive)||nba[0]).id);
+        if(!selectedNBAId&&nba.length>0)setSelectedNBAId((nba.find(g=>g.isLive)||nba[0]).id);
       }
       if(Array.isArray(nhl)){
         setNhlGames(nhl);
-        if(!selectedNHLId&&nhl.length>0) setSelectedNHLId((nhl.find(g=>g.isLive)||nhl[0]).id);
+        if(!selectedNHLId&&nhl.length>0)setSelectedNHLId((nhl.find(g=>g.isLive)||nhl[0]).id);
       }
       setTeamStats(stats);
       setNhlStats(nhlS);
@@ -485,7 +485,6 @@ export default function App(){
   const selectedNHL=nhlGames.find(g=>g.id===selectedNHLId);
   const nbaSig=selectedNBA?getLiveSignalNBA(selectedNBA):{type:"SCHEDULED",label:"",edge:0,confidence:0,projection:0};
   const nhlSig=selectedNHL?getLiveSignalNHL(selectedNHL):{type:"SCHEDULED",label:"",edge:0,confidence:0,projection:0};
-  const c=tab==="nba"?COLORS[nbaSig.type]:COLORS[nhlSig.type];
   const totalLive=nbaLive.length+nhlLive.length;
 
   return(
@@ -500,8 +499,12 @@ export default function App(){
 
       {/* TABS */}
       <div style={{padding:"10px 12px 0",display:"flex",gap:8}}>
-        <button onClick={()=>setTab("nba")} style={{flex:1,padding:"9px 0",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"monospace",fontSize:12,fontWeight:900,background:tab==="nba"?"linear-gradient(135deg,#7c3aed,#5b21b6)":"#ffffff",color:tab==="nba"?"#fff":"#888",boxShadow:tab==="nba"?"0 2px 12px #7c3aed30":"0 1px 4px #00000010"}}>🏀 NBA {nbaLive.length>0&&`● ${nbaLive.length}`}</button>
-        <button onClick={()=>setTab("nhl")} style={{flex:1,padding:"9px 0",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"monospace",fontSize:12,fontWeight:900,background:tab==="nhl"?"linear-gradient(135deg,#0066cc,#003399)":"#ffffff",color:tab==="nhl"?"#fff":"#888",boxShadow:tab==="nhl"?"0 2px 12px #0066cc30":"0 1px 4px #00000010"}}>🏒 NHL {nhlLive.length>0&&`● ${nhlLive.length}`}</button>
+        <button onClick={()=>setTab("nba")} style={{flex:1,padding:"9px 0",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"monospace",fontSize:12,fontWeight:900,background:tab==="nba"?"linear-gradient(135deg,#7c3aed,#5b21b6)":"#ffffff",color:tab==="nba"?"#fff":"#888",boxShadow:tab==="nba"?"0 2px 12px #7c3aed30":"0 1px 4px #00000010"}}>
+          🏀 NBA{nbaLive.length>0?` ● ${nbaLive.length}`:""}
+        </button>
+        <button onClick={()=>setTab("nhl")} style={{flex:1,padding:"9px 0",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"monospace",fontSize:12,fontWeight:900,background:tab==="nhl"?"linear-gradient(135deg,#0066cc,#003399)":"#ffffff",color:tab==="nhl"?"#fff":"#888",boxShadow:tab==="nhl"?"0 2px 12px #0066cc30":"0 1px 4px #00000010"}}>
+          🏒 NHL{nhlLive.length>0?` ● ${nhlLive.length}`:""}
+        </button>
       </div>
 
       {status==="loading"&&(
