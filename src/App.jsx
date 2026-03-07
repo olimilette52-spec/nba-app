@@ -3,14 +3,14 @@ import { useState, useEffect } from "react";
 const PROXY = "https://nba-proxy-production.up.railway.app";
 
 const NBA_TEAM_IDS = {
-  Hawks:1610612737, Celtics:1610612738, Nets:1610612751, Hornets:1610612766,
-  Bulls:1610612741, Cavaliers:1610612739, Mavericks:1610612742, Nuggets:1610612743,
-  Pistons:1610612765, Warriors:1610612744, Rockets:1610612745, Pacers:1610612754,
-  Clippers:1610612746, Lakers:1610612747, Grizzlies:1610612763, Heat:1610612748,
-  Bucks:1610612749, Timberwolves:1610612750, Pelicans:1610612740, Knicks:1610612752,
-  Thunder:1610612760, Magic:1610612753, "76ers":1610612755, Suns:1610612756,
-  "Trail Blazers":1610612757, Kings:1610612758, Spurs:1610612759, Raptors:1610612761,
-  Jazz:1610612762, Wizards:1610612764
+  Hawks:1610612737,Celtics:1610612738,Nets:1610612751,Hornets:1610612766,
+  Bulls:1610612741,Cavaliers:1610612739,Mavericks:1610612742,Nuggets:1610612743,
+  Pistons:1610612765,Warriors:1610612744,Rockets:1610612745,Pacers:1610612754,
+  Clippers:1610612746,Lakers:1610612747,Grizzlies:1610612763,Heat:1610612748,
+  Bucks:1610612749,Timberwolves:1610612750,Pelicans:1610612740,Knicks:1610612752,
+  Thunder:1610612760,Magic:1610612753,"76ers":1610612755,Suns:1610612756,
+  "Trail Blazers":1610612757,Kings:1610612758,Spurs:1610612759,Raptors:1610612761,
+  Jazz:1610612762,Wizards:1610612764
 };
 
 const NHL_ABBRS = {
@@ -25,21 +25,97 @@ const NHL_ABBRS = {
   "Washington Capitals":"WSH","Winnipeg Jets":"WPG"
 };
 
-function getNBALogo(teamName){
-  const fullName=Object.keys(NBA_TEAM_IDS).find(k=>teamName.includes(k));
-  const id=fullName?NBA_TEAM_IDS[fullName]:null;
-  return id?`https://cdn.nba.com/logos/nba/${id}/global/L/logo.svg`:null;
+const NHL_TEAM_COLORS = {
+  ANA:"#F47A38",ARI:"#8C2633",BOS:"#FFB81C",BUF:"#003087",CGY:"#C8102E",
+  CAR:"#CC0000",CHI:"#CF0A2C",COL:"#6F263D",CBJ:"#002654",DAL:"#006847",
+  DET:"#CE1126",EDM:"#FF4C00",FLA:"#C8102E",LAK:"#111111",MIN:"#154734",
+  MTL:"#AF1E2D",NSH:"#FFB81C",NJD:"#CE1126",NYI:"#00539B",NYR:"#0038A8",
+  OTT:"#C52032",PHI:"#F74902",PIT:"#FCB514",SJS:"#006D75",SEA:"#99D9D9",
+  STL:"#002F87",TBL:"#002868",TOR:"#003E7E",VAN:"#00843D",VGK:"#B4975A",
+  WSH:"#C8102E",WPG:"#004C97",ARI:"#8C2633"
+};
+
+const NHL_STATS = {
+  ANA:{gf:2.4,ga:3.5,pp:17.2,pk:76.4,cf:47.2,xgf:46.8,pdo:97.2,shots:28.2,hdcf:47.1,svPct:89.2,last10:[3,4,3,5,2,4,3,2,4,3]},
+  BOS:{gf:3.4,ga:2.6,pp:22.4,pk:82.1,cf:54.1,xgf:55.2,pdo:101.8,shots:32.4,hdcf:55.8,svPct:91.8,last10:[7,6,6,8,5,7,6,7,5,8]},
+  BUF:{gf:2.9,ga:3.1,pp:19.8,pk:78.6,cf:49.4,xgf:48.9,pdo:99.1,shots:29.6,hdcf:49.2,svPct:90.1,last10:[5,4,5,6,4,5,4,5,6,4]},
+  CGY:{gf:2.8,ga:3.0,pp:20.1,pk:79.2,cf:50.2,xgf:49.8,pdo:99.4,shots:30.2,hdcf:50.1,svPct:90.4,last10:[5,4,5,4,5,4,5,4,5,4]},
+  CAR:{gf:3.2,ga:2.5,pp:21.8,pk:83.4,cf:55.6,xgf:56.1,pdo:102.4,shots:33.1,hdcf:56.2,svPct:92.4,last10:[7,6,7,8,6,7,6,8,7,6]},
+  CHI:{gf:2.3,ga:3.6,pp:16.8,pk:75.2,cf:45.8,xgf:44.9,pdo:96.8,shots:27.4,hdcf:45.2,svPct:88.8,last10:[3,2,3,4,3,2,3,2,4,3]},
+  COL:{gf:3.6,ga:2.8,pp:24.2,pk:81.6,cf:53.8,xgf:54.4,pdo:101.2,shots:34.2,hdcf:54.6,svPct:91.2,last10:[7,8,6,7,8,6,7,8,7,6]},
+  CBJ:{gf:2.5,ga:3.4,pp:18.4,pk:77.1,cf:46.9,xgf:46.2,pdo:97.6,shots:28.8,hdcf:46.8,svPct:89.6,last10:[4,3,4,3,4,3,4,3,4,3]},
+  DAL:{gf:3.3,ga:2.4,pp:23.1,pk:84.2,cf:56.2,xgf:57.0,pdo:103.1,shots:33.8,hdcf:57.1,svPct:92.1,last10:[7,8,7,6,8,7,8,7,6,8]},
+  DET:{gf:2.7,ga:3.2,pp:19.2,pk:78.0,cf:48.6,xgf:48.1,pdo:98.4,shots:29.4,hdcf:48.4,svPct:90.4,last10:[4,5,4,5,4,5,4,5,4,5]},
+  EDM:{gf:3.5,ga:3.1,pp:26.4,pk:79.2,cf:52.4,xgf:53.1,pdo:100.6,shots:33.6,hdcf:53.2,svPct:90.6,last10:[6,7,6,8,6,7,6,7,6,7]},
+  FLA:{gf:3.4,ga:2.7,pp:22.8,pk:82.6,cf:54.8,xgf:55.6,pdo:102.1,shots:32.8,hdcf:55.9,svPct:92.1,last10:[7,6,7,8,6,7,8,6,7,8]},
+  LAK:{gf:3.1,ga:2.6,pp:20.4,pk:81.8,cf:53.2,xgf:53.8,pdo:101.4,shots:31.6,hdcf:54.0,svPct:91.4,last10:[6,5,6,7,5,6,7,5,6,7]},
+  MIN:{gf:3.0,ga:2.8,pp:20.8,pk:80.4,cf:51.6,xgf:51.2,pdo:100.2,shots:30.8,hdcf:51.4,svPct:90.2,last10:[5,6,5,6,5,6,5,6,5,6]},
+  MTL:{gf:2.6,ga:3.3,pp:18.8,pk:77.8,cf:47.4,xgf:47.0,pdo:98.0,shots:29.0,hdcf:47.2,svPct:89.0,last10:[4,3,4,5,3,4,3,5,4,3]},
+  NSH:{gf:2.7,ga:3.1,pp:19.4,pk:78.4,cf:48.8,xgf:48.4,pdo:98.6,shots:29.6,hdcf:48.6,svPct:90.6,last10:[4,5,4,4,5,4,5,4,4,5]},
+  NJD:{gf:2.8,ga:2.9,pp:20.2,pk:80.2,cf:50.8,xgf:50.4,pdo:99.8,shots:30.4,hdcf:50.6,svPct:90.8,last10:[5,4,5,6,4,5,6,4,5,6]},
+  NYI:{gf:2.6,ga:2.9,pp:18.6,pk:80.8,cf:49.8,xgf:49.4,pdo:99.2,shots:29.8,hdcf:49.6,svPct:90.2,last10:[4,5,4,5,4,5,4,5,4,5]},
+  NYR:{gf:3.3,ga:2.6,pp:22.6,pk:82.6,cf:54.4,xgf:55.0,pdo:102.2,shots:32.6,hdcf:55.2,svPct:92.2,last10:[7,6,7,8,6,7,6,8,7,6]},
+  OTT:{gf:3.0,ga:3.0,pp:21.2,pk:79.8,cf:50.6,xgf:50.2,pdo:100.0,shots:30.6,hdcf:50.4,svPct:90.0,last10:[5,6,5,4,6,5,4,6,5,4]},
+  PHI:{gf:2.8,ga:3.2,pp:19.6,pk:78.2,cf:48.2,xgf:47.8,pdo:98.2,shots:29.2,hdcf:48.0,svPct:89.2,last10:[4,5,4,3,5,4,3,5,4,3]},
+  PIT:{gf:2.9,ga:3.1,pp:20.6,pk:79.4,cf:49.6,xgf:49.2,pdo:99.0,shots:30.0,hdcf:49.4,svPct:90.0,last10:[5,4,5,6,4,5,4,6,5,4]},
+  SJS:{gf:2.2,ga:3.8,pp:15.8,pk:74.4,cf:44.6,xgf:43.8,pdo:96.2,shots:26.8,hdcf:44.0,svPct:88.2,last10:[3,2,3,2,3,2,3,2,3,2]},
+  SEA:{gf:2.8,ga:2.9,pp:20.0,pk:80.6,cf:51.0,xgf:50.8,pdo:99.6,shots:30.4,hdcf:51.0,svPct:90.6,last10:[5,4,5,6,4,5,6,4,5,6]},
+  STL:{gf:2.9,ga:2.9,pp:20.4,pk:80.0,cf:50.4,xgf:50.0,pdo:99.8,shots:30.2,hdcf:50.2,svPct:90.8,last10:[5,4,5,4,6,5,4,5,6,5]},
+  TBL:{gf:3.2,ga:2.7,pp:22.0,pk:81.4,cf:53.6,xgf:54.2,pdo:101.6,shots:32.2,hdcf:54.4,svPct:91.6,last10:[6,7,6,7,6,7,6,7,6,7]},
+  TOR:{gf:3.3,ga:3.0,pp:22.0,pk:80.4,cf:52.8,xgf:53.4,pdo:100.8,shots:31.6,hdcf:53.6,svPct:90.8,last10:[6,7,6,5,7,6,5,7,6,5]},
+  VAN:{gf:3.1,ga:2.8,pp:21.6,pk:81.2,cf:52.6,xgf:52.2,pdo:100.4,shots:31.2,hdcf:52.4,svPct:91.4,last10:[5,6,7,5,6,7,5,6,7,5]},
+  VGK:{gf:3.2,ga:2.6,pp:22.2,pk:82.4,cf:54.2,xgf:54.8,pdo:101.8,shots:32.4,hdcf:55.0,svPct:91.8,last10:[7,6,7,6,7,6,7,6,7,6]},
+  WSH:{gf:3.0,ga:2.9,pp:21.0,pk:80.8,cf:51.4,xgf:51.0,pdo:100.2,shots:30.8,hdcf:51.2,svPct:90.2,last10:[6,5,6,5,6,5,6,5,6,5]},
+  WPG:{gf:3.2,ga:2.7,pp:22.4,pk:82.0,cf:53.4,xgf:53.6,pdo:101.4,shots:32.0,hdcf:53.8,svPct:91.4,last10:[6,7,6,7,6,7,6,7,6,7]},
+  ARI:{gf:2.4,ga:3.4,pp:17.8,pk:76.8,cf:46.4,xgf:45.8,pdo:97.4,shots:27.8,hdcf:46.2,svPct:89.4,last10:[3,4,3,4,3,4,3,4,3,4]}
+};
+
+function getNBALogo(n){const k=Object.keys(NBA_TEAM_IDS).find(k=>n.includes(k));const id=k?NBA_TEAM_IDS[k]:null;return id?`https://cdn.nba.com/logos/nba/${id}/global/L/logo.svg`:null;}
+function getNHLAbbr(name){return NHL_ABBRS[name]||name;}
+function getNHLLogo(name){return`https://assets.nhle.com/logos/nhl/svg/${getNHLAbbr(name)}_light.svg`;}
+function getNHLColor(abbr){return NHL_TEAM_COLORS[abbr]||"#0066cc";}
+function toQcTime(iso){if(!iso)return"";return new Date(iso).toLocaleTimeString("fr-CA",{hour:"2-digit",minute:"2-digit",timeZone:"America/Toronto"});}
+
+function getNHLWinner(awayAbbr,homeAbbr,awayB2B=false,homeB2B=false){
+  const a=NHL_STATS[awayAbbr],h=NHL_STATS[homeAbbr];
+  if(!a||!h)return null;
+  const LEAGUE=3.05;
+  const hGF=h.gf*0.7+LEAGUE*0.3,hGA=h.ga*0.7+LEAGUE*0.3;
+  const aGF=a.gf*0.7+LEAGUE*0.3,aGA=a.ga*0.7+LEAGUE*0.3;
+  let hs=0,as=0;
+  hs+=h.cf*0.25;as+=a.cf*0.25;
+  hs+=h.xgf*0.30;as+=a.xgf*0.30;
+  hs+=h.hdcf*0.15;as+=a.hdcf*0.15;
+  hs+=(h.pdo-97)*0.10;as+=(a.pdo-97)*0.10;
+  hs+=(h.pp*0.5+(100-a.pk)*0.5)*0.10;as+=(a.pp*0.5+(100-h.pk)*0.5)*0.10;
+  hs+=(hGF/hGA)*5*0.05;as+=(aGF/aGA)*5*0.05;
+  const hr=h.last10.reduce((a,b)=>a+b,0)/h.last10.length;
+  const ar=a.last10.reduce((a,b)=>a+b,0)/a.last10.length;
+  hs+=hr*0.10;as+=ar*0.10;
+  hs+=h.svPct*0.05;as+=a.svPct*0.05;
+  hs+=1.5;
+  if(homeB2B)hs-=2.0;
+  if(awayB2B)as-=2.0;
+  const total=hs+as;
+  const homePct=Math.round((hs/total)*100);
+  const awayPct=100-homePct;
+  return{homePct,awayPct,winner:homePct>=awayPct?homeAbbr:awayAbbr};
 }
 
-function getNHLLogo(teamName){
-  const abbr=NHL_ABBRS[teamName]||teamName;
-  return`https://assets.nhle.com/logos/nhl/svg/${abbr}_light.svg`;
-}
-
-function toQcTime(isoDate){
-  if(!isoDate)return"";
-  const d=new Date(isoDate);
-  return d.toLocaleTimeString("fr-CA",{hour:"2-digit",minute:"2-digit",timeZone:"America/Toronto"});
+function getLiveWinProb(homeScore,awayScore,period,timeLeft,baseHomePct){
+  const TOTAL=60,PM=20;
+  const[m,s]=timeLeft.split(":").map(Number);
+  const minLeft=m+s/60;
+  const played=(period-1)*PM+(PM-minLeft);
+  const pctPlayed=Math.min(1,played/TOTAL);
+  const scoreDiff=homeScore-awayScore;
+  const scoreWeight=pctPlayed*0.85;
+  const baseWeight=1-scoreWeight;
+  let scoreProb=50;
+  if(scoreDiff>0)scoreProb=50+Math.min(45,scoreDiff*15*pctPlayed);
+  if(scoreDiff<0)scoreProb=50+Math.max(-45,scoreDiff*15*pctPlayed);
+  const blended=scoreProb*scoreWeight+baseHomePct*baseWeight;
+  return Math.min(97,Math.max(3,Math.round(blended)));
 }
 
 const Q=12,TOTAL_MIN=48;
@@ -70,97 +146,34 @@ function getLiveSignalNBA(game){
   return{type,label,edge,confidence:conf,projection:proj};
 }
 
-const PERIOD_MIN=20,TOTAL_NHL=60;
-function getLiveSignalNHL(game){
-  if(!game.isLive||!game.total)return{type:"SCHEDULED",label:"🕐 À VENIR",edge:0,confidence:0,projection:0};
-  const scored=game.homeScore+game.awayScore;
-  const p=((game.period-1)*PERIOD_MIN)+(PERIOD_MIN-pt(game.timeLeft));
-  const r=Math.max(0,TOTAL_NHL-p);
-  if(p<2)return{type:"NEUTRAL",label:"⚖️ NEUTRE",edge:0,confidence:0,projection:scored};
-  const pace=scored/p;
-  const avgPace=game.total/TOTAL_NHL;
-  const rw=Math.min(0.96,0.50+(p/TOTAL_NHL)*0.48);
-  const blended=pace*rw+avgPace*(1-rw);
-  const proj=+(scored+blended*r).toFixed(1);
-  const edge=+(proj-game.total).toFixed(1);
-  const conf=Math.min(100,Math.round(Math.min(35,(p/TOTAL_NHL)*35)+Math.min(28,Math.abs(edge)*4)+20));
-  let type,label;
-  if(edge>1.5&&conf>=55){type="STRONG_OVER";label="🔥 STRONG OVER";}
-  else if(edge>0.7&&conf>=40){type="OVER";label="📈 OVER";}
-  else if(edge<-1.5&&conf>=55){type="STRONG_UNDER";label="❄️ STRONG UNDER";}
-  else if(edge<-0.7&&conf>=40){type="UNDER";label="📉 UNDER";}
-  else{type="NEUTRAL";label="⚖️ NEUTRE";}
-  return{type,label,edge,confidence:conf,projection:proj};
-}
-
 function getNBAPreMatch(game,teamStats){
   if(!teamStats)return null;
   const hKey=Object.keys(teamStats).find(k=>game.homeFull.includes(k)||k===game.home);
   const aKey=Object.keys(teamStats).find(k=>game.awayFull.includes(k)||k===game.away);
-  const hStats=hKey?teamStats[hKey]:null;
-  const aStats=aKey?teamStats[aKey]:null;
-  if(!hStats?.ppg||!aStats?.ppg)return null;
-  const homeExpected=(hStats.ppg+aStats.oppg)/2+1.6;
-  const awayExpected=(aStats.ppg+hStats.oppg)/2;
-  let proj=homeExpected+awayExpected;
-  if(hStats.pace&&aStats.pace)proj+=(((hStats.pace+aStats.pace)/2)-98.5)*0.8;
-  if(hStats.recentPts&&aStats.recentPts)proj=proj*0.65+((hStats.recentPts+aStats.recentPts)/2)*0.35;
-  if(hStats.backToBack)proj-=3.5;
-  if(aStats.backToBack)proj-=3.5;
-  const ratio=homeExpected/(homeExpected+awayExpected);
+  const hS=hKey?teamStats[hKey]:null;
+  const aS=aKey?teamStats[aKey]:null;
+  if(!hS?.ppg||!aS?.ppg)return null;
+  let homeExp=(hS.ppg+aS.oppg)/2+1.6;
+  let awayExp=(aS.ppg+hS.oppg)/2;
+  if(hS.pace&&aS.pace){const avg=(hS.pace+aS.pace)/2;homeExp+=(avg-98.5)*0.4;awayExp+=(avg-98.5)*0.4;}
+  if(hS.recentPts&&aS.recentPts){homeExp=homeExp*0.65+(hS.recentPts)*0.35;awayExp=awayExp*0.65+(aS.recentPts)*0.35;}
+  if(hS.backToBack)homeExp-=3.5;
+  if(aS.backToBack)awayExp-=3.5;
+  const proj=+(homeExp+awayExp).toFixed(1);
+  const ratio=homeExp/(homeExp+awayExp);
   const homeProjScore=Math.round(proj*ratio);
   const awayProjScore=Math.round(proj-homeProjScore);
-  const projDiff=homeProjScore-awayProjScore;
+  const homePct=Math.round(ratio*100);
+  const awayPct=100-homePct;
+  const winner=homeProjScore>awayProjScore?game.home:awayProjScore>homeProjScore?game.away:null;
   let spreadCover=null;
-  if(game.spread!==null&&game.spreadTeam){
+  if(game.spread!=null&&game.spreadTeam){
     const favHome=game.home===game.spreadTeam||game.homeFull.includes(game.spreadTeam);
-    if(favHome){
-      spreadCover=projDiff>=Math.abs(game.spread)?{team:game.home,covers:true}:{team:game.away,covers:true,isUnderdog:true};
-    }else{
-      const awayDiff=awayProjScore-homeProjScore;
-      spreadCover=awayDiff>=Math.abs(game.spread)?{team:game.away,covers:true}:{team:game.home,covers:true,isUnderdog:true};
-    }
+    const diff=homeProjScore-awayProjScore;
+    if(favHome){spreadCover=diff>=Math.abs(game.spread)?{team:game.home,spread:-Math.abs(game.spread)}:{team:game.away,spread:+Math.abs(game.spread)};}
+    else{spreadCover=(-diff)>=Math.abs(game.spread)?{team:game.away,spread:-Math.abs(game.spread)}:{team:game.home,spread:+Math.abs(game.spread)};}
   }
-  const total=homeExpected+awayExpected;
-  const homePct=Math.round((homeExpected/total)*100);
-  const awayPct=100-homePct;
-  return{proj:+proj.toFixed(1),homeProjScore,awayProjScore,homePpg:hStats.ppg,awayPpg:aStats.ppg,homeOppg:hStats.oppg,awayOppg:aStats.oppg,homeB2B:hStats.backToBack,awayB2B:aStats.backToBack,recentUsed:!!(hStats.recentPts&&aStats.recentPts),paceUsed:!!(hStats.pace&&aStats.pace),projDiff,spreadCover,winner:homeProjScore>awayProjScore?game.home:awayProjScore>homeProjScore?game.away:null,homePct,awayPct};
-}
-
-function getNHLPreMatch(game,nhlStats){
-  if(!nhlStats)return null;
-  const hAbbr=NHL_ABBRS[game.homeFull]||game.home;
-  const aAbbr=NHL_ABBRS[game.awayFull]||game.away;
-  const hStats=nhlStats[hAbbr];
-  const aStats=nhlStats[aAbbr];
-  if(!hStats||!aStats)return null;
-  const homeExp=+((hStats.gf*0.6+aStats.ga*0.4)+0.2).toFixed(2);
-  const awayExp=+((aStats.gf*0.6+hStats.ga*0.4)).toFixed(2);
-  const ppAdj=(hStats.pp-aStats.pp)*0.015;
-  const shotsAdj=(hStats.shots-aStats.shots)*0.02;
-  const finalHome=+(homeExp+ppAdj+shotsAdj).toFixed(2);
-  const finalAway=+(awayExp-ppAdj-shotsAdj).toFixed(2);
-  const proj=+(finalHome+finalAway).toFixed(1);
-  const homeProjScore=Math.round(finalHome);
-  const awayProjScore=Math.round(finalAway);
-  const isOT=homeProjScore===awayProjScore;
-  const projDiff=+(finalHome-finalAway).toFixed(2);
-  // % basé sur notre modèle
-  const total=finalHome+finalAway;
-  const homePct=Math.round((finalHome/total)*100);
-  const awayPct=100-homePct;
-  let puckCover=null;
-  if(game.puckLine&&game.puckLineTeam){
-    const favHome=game.home===game.puckLineTeam||game.homeFull.includes(game.puckLineTeam);
-    if(favHome){
-      puckCover=projDiff>=1.5?{team:game.home,covers:true}:{team:game.away,covers:true};
-    }else{
-      const awayDiff=finalAway-finalHome;
-      puckCover=awayDiff>=1.5?{team:game.away,covers:true}:{team:game.home,covers:true};
-    }
-  }
-  const winner=isOT?null:finalHome>finalAway?game.home:game.away;
-  return{proj,homeProjScore,awayProjScore,homeGF:hStats.gf,awayGF:aStats.gf,homeGA:hStats.ga,awayGA:aStats.ga,finalHome,finalAway,projDiff,puckCover,winner,isOT,homePct,awayPct};
+  return{proj,homeProjScore,awayProjScore,homePpg:hS.ppg,awayPpg:aS.ppg,homeOppg:hS.oppg,awayOppg:aS.oppg,homeB2B:hS.backToBack,awayB2B:aS.backToBack,recentUsed:!!(hS.recentPts&&aS.recentPts),paceUsed:!!(hS.pace&&aS.pace),spreadCover,winner,homePct,awayPct};
 }
 
 const COLORS={STRONG_OVER:"#007733",OVER:"#009944",NEUTRAL:"#888",UNDER:"#cc3300",STRONG_UNDER:"#aa0022",SCHEDULED:"#aaa"};
@@ -183,836 +196,372 @@ function NBALogo({name,size=32}){
   if(!url)return<span style={{fontSize:size*0.7}}>🏀</span>;
   return<img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display='none'}/>;
 }
-
 function NHLLogo({name,size=32}){
-  const url=getNHLLogo(name);
-  return<img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>{e.target.style.display='none';}}/>;
-}
-function NBAPreMatchCard({game,teamStats}){
-  const pred=getNBAPreMatch(game,teamStats);
-  const favoriteIsHome=game.spreadTeam&&(game.home===game.spreadTeam||game.homeFull.includes(game.spreadTeam));
-  const homeSpread=game.spread?(favoriteIsHome?-Math.abs(game.spread):+Math.abs(game.spread)):null;
-  const awaySpread=game.spread?(favoriteIsHome?+Math.abs(game.spread):-Math.abs(game.spread)):null;
-  return(
-    <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:13,padding:"15px 17px",boxShadow:"0 1px 6px #00000008"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <NBALogo name={game.awayFull} size={36}/>
-          <div>
-            <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span>
-            {pred?.awayB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>😴 B2B</div>}
-          </div>
-        </div>
-        <div style={{textAlign:"center"}}>
-          <div style={{color:"#111",fontSize:18,fontWeight:900}}>VS</div>
-          <div style={{color:"#888",fontSize:10,fontWeight:700}}>{toQcTime(game.time)} HE</div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <div style={{textAlign:"right"}}>
-            <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span>
-            {pred?.homeB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>😴 B2B</div>}
-          </div>
-          <NBALogo name={game.homeFull} size={36}/>
-        </div>
-      </div>
-      <div style={{background:"#f4f4f4",borderRadius:10,padding:"10px 12px"}}>
-        {pred?(
-          <>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
-              <div style={{textAlign:"center"}}>
-                <div style={{color:"#777",fontSize:8}}>MOY {game.away}</div>
-                <div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.awayPpg}</div>
-                <div style={{color:"#aaa",fontSize:8}}>DEF {pred.awayOppg}</div>
-              </div>
-              <div style={{textAlign:"center"}}>
-                <div style={{color:"#777",fontSize:8}}>PROJECTION</div>
-                <div style={{color:"#7c3aed",fontSize:20,fontWeight:900}}>{pred.proj}</div>
-                <div style={{color:"#bbb",fontSize:7}}>{pred.paceUsed&&"⚡pace "}{pred.recentUsed&&"📈forme"}</div>
-              </div>
-              <div style={{textAlign:"center"}}>
-                <div style={{color:"#777",fontSize:8}}>MOY {game.home}</div>
-                <div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.homePpg}</div>
-                <div style={{color:"#aaa",fontSize:8}}>DEF {pred.homeOppg}</div>
-              </div>
-            </div>
-            {/* Barre probabilité */}
-            <div style={{height:5,borderRadius:3,overflow:"hidden",display:"flex",marginBottom:8}}>
-              <div style={{width:`${pred.awayPct}%`,background:"#7c3aed"}}/>
-              <div style={{width:`${pred.homePct}%`,background:"#00aa55"}}/>
-            </div>
-            <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:8,padding:"8px 12px",marginBottom:8}}>
-              <div style={{color:"#777",fontSize:8,marginBottom:6}}>SCORE PRÉDIT / CHANCE DE VICTOIRE</div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{color:"#111",fontWeight:700,fontSize:11,width:32}}>{game.away}</span>
-                  <span style={{color:pred.awayProjScore>pred.homeProjScore?"#007733":"#cc3300",fontSize:22,fontWeight:900}}>{pred.awayProjScore}</span>
-                </div>
-                <div style={{background:pred.awayProjScore>pred.homeProjScore?"#00aa5515":"#ff330015",border:`1px solid ${pred.awayProjScore>pred.homeProjScore?"#00aa5530":"#ff330025"}`,borderRadius:6,padding:"3px 10px",color:pred.awayProjScore>pred.homeProjScore?"#007733":"#cc3300",fontSize:13,fontWeight:900}}>{pred.awayPct}%</div>
-              </div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{color:"#111",fontWeight:700,fontSize:11,width:32}}>{game.home}</span>
-                  <span style={{color:pred.homeProjScore>pred.awayProjScore?"#007733":"#cc3300",fontSize:22,fontWeight:900}}>{pred.homeProjScore}</span>
-                </div>
-                <div style={{background:pred.homeProjScore>pred.awayProjScore?"#00aa5515":"#ff330015",border:`1px solid ${pred.homeProjScore>pred.awayProjScore?"#00aa5530":"#ff330025"}`,borderRadius:6,padding:"3px 10px",color:pred.homeProjScore>pred.awayProjScore?"#007733":"#cc3300",fontSize:13,fontWeight:900}}>{pred.homePct}%</div>
-              </div>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-              {game.total&&(
-                <div>
-                  <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:5,fontWeight:700}}>TOTAL PICK</div>
-                  <div style={{background:pred.proj>game.total?"#00aa5515":"#ff330015",border:`1px solid ${pred.proj>game.total?"#00aa5530":"#ff330025"}`,borderRadius:8,padding:"8px",color:pred.proj>game.total?"#007733":"#cc3300",fontSize:13,fontWeight:900,textAlign:"center"}}>
-                    {pred.proj>game.total?`O ${game.total}`:`U ${game.total}`}
-                  </div>
-                </div>
-              )}
-              {game.spread!==null&&game.spreadTeam&&pred.spreadCover&&(
-                <div>
-                  <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:5,fontWeight:700}}>SPREAD PICK</div>
-                  <div style={{background:pred.spreadCover.covers?"#00aa5515":"#ff330015",border:`1px solid ${pred.spreadCover.covers?"#00aa5530":"#ff330025"}`,borderRadius:8,padding:"8px",color:pred.spreadCover.covers?"#007733":"#cc3300",fontSize:13,fontWeight:900,textAlign:"center"}}>
-                    {pred.spreadCover.team} {pred.spreadCover.team===game.away?(awaySpread>0?"+":"")+awaySpread:(homeSpread>0?"+":"")+homeSpread}
-                  </div>
-                </div>
-              )}
-            </div>
-            <div style={{borderTop:"1px solid #e8e8e8",paddingTop:8,display:"flex",justifyContent:"center"}}>
-              <div style={{background:"#00aa5515",border:"1px solid #00aa5530",borderRadius:6,padding:"4px 14px",color:"#007733",fontSize:11,fontWeight:900}}>
-                {pred.winner?`${pred.winner} GAGNE 🏆`:"SERRÉ 🤔"}
-              </div>
-            </div>
-          </>
-        ):(
-          <div style={{color:"#aaa",fontSize:9,textAlign:"center",padding:"8px 0"}}>Stats en chargement...</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function NHLPreMatchCard({game,nhlStats}){
-  const pred=getNHLPreMatch(game,nhlStats);
-  return(
-    <div style={{background:"#ffffff",border:`1px solid ${pred?.isOT?"#e67e0030":"#e0e0e0"}`,borderRadius:13,padding:"15px 17px",boxShadow:"0 1px 6px #00000008"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <NHLLogo name={game.awayFull} size={36}/>
-          <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span>
-        </div>
-        <div style={{textAlign:"center"}}>
-          <div style={{color:"#111",fontSize:16,fontWeight:900}}>VS</div>
-          <div style={{color:"#888",fontSize:9}}>{toQcTime(game.time)} HE</div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span>
-          <NHLLogo name={game.homeFull} size={36}/>
-        </div>
-      </div>
-      <div style={{background:"#f4f4f4",borderRadius:10,padding:"10px 12px"}}>
-        {pred?(
-          <>
-            {/* Barre probabilité */}
-            <div style={{height:5,borderRadius:3,overflow:"hidden",display:"flex",marginBottom:8}}>
-              <div style={{width:`${pred.awayPct}%`,background:pred.isOT?"#e67e00":"#0066cc"}}/>
-              <div style={{width:`${pred.homePct}%`,background:pred.isOT?"#e67e00":"#003399"}}/>
-            </div>
-            {/* Score + % */}
-            <div style={{background:"#ffffff",border:`1px solid ${pred.isOT?"#e67e0030":"#e0e0e0"}`,borderRadius:8,padding:"8px 12px",marginBottom:8}}>
-              <div style={{color:"#777",fontSize:8,marginBottom:6,letterSpacing:1,fontWeight:700}}>SCORE PRÉDIT / CHANCE DE VICTOIRE</div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{color:"#111",fontWeight:700,fontSize:11,width:32}}>{game.away}</span>
-                  <span style={{color:pred.isOT?"#e67e00":pred.finalAway>pred.finalHome?"#007733":"#cc3300",fontSize:22,fontWeight:900}}>{pred.finalAway.toFixed(1)}</span>
-                </div>
-                <div style={{background:pred.awayPct>pred.homePct?"#00aa5515":"#ff330015",border:`1px solid ${pred.awayPct>pred.homePct?"#00aa5530":"#ff330025"}`,borderRadius:6,padding:"3px 10px",color:pred.awayPct>pred.homePct?"#007733":"#cc3300",fontSize:13,fontWeight:900}}>{pred.awayPct}%</div>
-              </div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{color:"#111",fontWeight:700,fontSize:11,width:32}}>{game.home}</span>
-                  <span style={{color:pred.isOT?"#e67e00":pred.finalHome>pred.finalAway?"#007733":"#cc3300",fontSize:22,fontWeight:900}}>{pred.finalHome.toFixed(1)}</span>
-                </div>
-                <div style={{background:pred.homePct>pred.awayPct?"#00aa5515":"#ff330015",border:`1px solid ${pred.homePct>pred.awayPct?"#00aa5530":"#ff330025"}`,borderRadius:6,padding:"3px 10px",color:pred.homePct>pred.awayPct?"#007733":"#cc3300",fontSize:13,fontWeight:900}}>{pred.homePct}%</div>
-              </div>
-            </div>
-            {/* Spread + Total */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-              {pred.puckCover&&(
-                <div>
-                  <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:5,fontWeight:700}}>SPREAD PICK</div>
-                  <div style={{background:pred.puckCover.covers?"#00aa5515":"#ff330015",border:`1px solid ${pred.puckCover.covers?"#00aa5530":"#ff330025"}`,borderRadius:8,padding:"8px",color:pred.puckCover.covers?"#007733":"#cc3300",fontSize:13,fontWeight:900,textAlign:"center"}}>
-                    {pred.puckCover.team} {pred.puckCover.team===game.away?"+1.5":"-1.5"}
-                  </div>
-                </div>
-              )}
-              {game.total&&(
-                <div>
-                  <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:5,fontWeight:700}}>TOTAL PICK</div>
-                  <div style={{background:pred.isOT?"#e67e0015":pred.proj>game.total?"#00aa5515":"#ff330015",border:`1px solid ${pred.isOT?"#e67e0030":pred.proj>game.total?"#00aa5530":"#ff330025"}`,borderRadius:8,padding:"8px",color:pred.isOT?"#e67e00":pred.proj>game.total?"#007733":"#cc3300",fontSize:pred.isOT?10:13,fontWeight:900,textAlign:"center"}}>
-                    {pred.isOT?`O ${game.total} ⚡`:pred.proj>game.total?`O ${game.total}`:`U ${game.total}`}
-                  </div>
-                </div>
-              )}
-            </div>
-            {/* Gagnant */}
-            <div style={{borderTop:"1px solid #e8e8e8",paddingTop:8,display:"flex",justifyContent:"center"}}>
-              <div style={{background:pred.isOT?"#e67e0015":"#00aa5515",border:`1px solid ${pred.isOT?"#e67e0030":"#00aa5530"}`,borderRadius:6,padding:"4px 14px",color:pred.isOT?"#e67e00":"#007733",fontSize:11,fontWeight:900}}>
-                {pred.isOT?" OVER AUTO ⚡
- → OVER AUTO":`${pred.winner} GAGNE 🏆`}
-              </div>
-            </div>
-          </>
-        ):(
-          <div style={{color:"#aaa",fontSize:9,textAlign:"center",padding:"8px 0"}}>Stats en chargement...</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function NBALiveCard({game,selected,onSelect}){
-  const sig=getLiveSignalNBA(game);
-  const c=COLORS[sig.type],bg=BGCOLORS[sig.type],border=BORDERCOLORS[sig.type];
-  const scored=(game.homeScore||0)+(game.awayScore||0);
-  const progress=game.total?Math.min((scored/game.total)*100,100):0;
-  const[pulse,setPulse]=useState(false);
-  useEffect(()=>{const t=setInterval(()=>setPulse(p=>!p),1600);return()=>clearInterval(t);},[]);
-  return(
-    <div onClick={()=>onSelect(game.id)} style={{background:selected?"#f8fff8":"#ffffff",border:`1px solid ${selected?c+"66":"#e0e0e0"}`,borderRadius:13,padding:"15px 17px",cursor:"pointer",boxShadow:selected?`0 0 18px ${c}20`:"0 1px 6px #00000008",position:"relative"}}>
-      <div style={{position:"absolute",top:11,right:12,display:"flex",alignItems:"center",gap:5}}>
-        <div style={{width:6,height:6,borderRadius:"50%",background:"#cc0000",boxShadow:pulse?"0 0 8px #cc0000":"none",transition:"box-shadow 0.4s"}}/>
-        <span style={{color:"#cc0000",fontSize:8,fontWeight:700}}>LIVE</span>
-      </div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}><NBALogo name={game.awayFull} size={36}/><span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span></div>
-        <div style={{textAlign:"center"}}>
-          <div style={{color:"#111",fontSize:22,fontWeight:900}}>{game.awayScore}–{game.homeScore}</div>
-          <div style={{color:"#e67e00",fontSize:9,fontWeight:700}}>Q{game.quarter} {game.timeLeft}</div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span><NBALogo name={game.homeFull} size={36}/></div>
-      </div>
-      {game.total&&(<>
-        <div style={{height:3,background:"#e0e0e0",borderRadius:2,overflow:"hidden",marginBottom:9}}><div style={{height:"100%",width:`${progress}%`,background:c,transition:"width 1s"}}/></div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{background:bg,border:`1px solid ${border}`,borderRadius:6,padding:"4px 9px",color:c,fontSize:11,fontWeight:800}}>{sig.label}</div>
-          <div style={{display:"flex",alignItems:"center",gap:9}}>
-            <div style={{textAlign:"right"}}>
-              <div style={{color:"#aaa",fontSize:8}}>PROJ / LINE</div>
-              <div style={{color:c,fontSize:14,fontWeight:900}}>{sig.projection} / {game.total}</div>
-            </div>
-            <Ring value={sig.confidence} color={c} size={46}/>
-          </div>
-        </div>
-      </>)}
-    </div>
-  );
-}
-
-function NHLLiveCard({game,selected,onSelect}){
-  const sig=getLiveSignalNHL(game);
-  const c=COLORS[sig.type],bg=BGCOLORS[sig.type],border=BORDERCOLORS[sig.type];
-  const scored=(game.homeScore||0)+(game.awayScore||0);
-  const progress=game.total?Math.min((scored/game.total)*100,100):0;
-  const[pulse,setPulse]=useState(false);
-  useEffect(()=>{const t=setInterval(()=>setPulse(p=>!p),1600);return()=>clearInterval(t);},[]);
-  return(
-    <div onClick={()=>onSelect(game.id)} style={{background:selected?"#f0f8ff":"#ffffff",border:`1px solid ${selected?c+"66":"#e0e0e0"}`,borderRadius:13,padding:"15px 17px",cursor:"pointer",boxShadow:selected?`0 0 18px ${c}20`:"0 1px 6px #00000008",position:"relative"}}>
-      <div style={{position:"absolute",top:11,right:12,display:"flex",alignItems:"center",gap:5}}>
-        <div style={{width:6,height:6,borderRadius:"50%",background:"#cc0000",boxShadow:pulse?"0 0 8px #cc0000":"none",transition:"box-shadow 0.4s"}}/>
-        <span style={{color:"#cc0000",fontSize:8,fontWeight:700}}>LIVE</span>
-      </div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}><NHLLogo name={game.awayFull} size={36}/><span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span></div>
-        <div style={{textAlign:"center"}}>
-          <div style={{color:"#111",fontSize:22,fontWeight:900}}>{game.awayScore}–{game.homeScore}</div>
-          <div style={{color:"#e67e00",fontSize:9,fontWeight:700}}>P{game.period} {game.timeLeft}</div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span><NHLLogo name={game.homeFull} size={36}/></div>
-      </div>
-      {game.total&&(<>
-        <div style={{height:3,background:"#e0e0e0",borderRadius:2,overflow:"hidden",marginBottom:9}}><div style={{height:"100%",width:`${progress}%`,background:c,transition:"width 1s"}}/></div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{background:bg,border:`1px solid ${border}`,borderRadius:6,padding:"4px 9px",color:c,fontSize:11,fontWeight:800}}>{sig.label}</div>
-          <div style={{display:"flex",alignItems:"center",gap:9}}>
-            <div style={{textAlign:"right"}}>
-              <div style={{color:"#aaa",fontSize:8}}>PROJ / LINE</div>
-              <div style={{color:c,fontSize:14,fontWeight:900}}>{sig.projection} / {game.total}</div>
-            </div>
-            <Ring value={sig.confidence} color={c} size={46}/>
-          </div>
-        </div>
-      </>)}
-    </div>
-  );
+  return<img src={getNHLLogo(name)} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display='none'}/>;
 }
 export default function App(){
   const[tab,setTab]=useState("nba");
   const[nbaGames,setNbaGames]=useState([]);
   const[nhlGames,setNhlGames]=useState([]);
   const[teamStats,setTeamStats]=useState(null);
-  const[nhlStats,setNhlStats]=useState(null);
-  const[selectedNBAId,setSelectedNBAId]=useState(null);
-  const[selectedNHLId,setSelectedNHLId]=useState(null);
-  const[status,setStatus]=useState("loading");
-  const[lastUpdate,setLastUpdate]=useState(null);
+  const[now,setNow]=useState(new Date());
+  const[loading,setLoading]=useState(true);
 
-  const loadData=async()=>{
+  useEffect(()=>{
+    const t=setInterval(()=>setNow(new Date()),1000);
+    return()=>clearInterval(t);
+  },[]);
+
+  async function fetchAll(){
     try{
-      const[nbaRes,nhlRes,statsRes,nhlStatsRes]=await Promise.all([
+      const[scoresRes,statsRes,nhlRes]=await Promise.all([
         fetch(`${PROXY}/nba/scores`),
-        fetch(`${PROXY}/nhl/scores`),
         fetch(`${PROXY}/nba/stats`),
-        fetch(`${PROXY}/nhl/stats`),
+        fetch(`${PROXY}/nhl/scores`)
       ]);
-      const[nba,nhl,stats,nhlS]=await Promise.all([nbaRes.json(),nhlRes.json(),statsRes.json(),nhlStatsRes.json()]);
-      if(Array.isArray(nba)){
-        setNbaGames(nba);
-        if(!selectedNBAId&&nba.length>0)setSelectedNBAId((nba.find(g=>g.isLive)||nba[0]).id);
-      }
-      if(Array.isArray(nhl)){
-        setNhlGames(nhl);
-        if(!selectedNHLId&&nhl.length>0)setSelectedNHLId((nhl.find(g=>g.isLive)||nhl[0]).id);
-      }
-      setTeamStats(stats);
-      setNhlStats(nhlS);
-      setLastUpdate(new Date().toLocaleTimeString("fr-CA",{timeZone:"America/Toronto"}));
-      setStatus("ok");
-    }catch(e){
-      setStatus("error");
-    }
-  };
+      const scores=await scoresRes.json();
+      const stats=await statsRes.json();
+      const nhl=await nhlRes.json();
+      setNbaGames(Array.isArray(scores)?scores:[]);
+      setTeamStats(stats||null);
+      setNhlGames(Array.isArray(nhl)?nhl:[]);
+    }catch(e){console.error(e);}
+    finally{setLoading(false);}
+  }
 
-  useEffect(()=>{loadData();const iv=setInterval(loadData,30000);return()=>clearInterval(iv);},[]);
+  useEffect(()=>{fetchAll();const t=setInterval(fetchAll,30000);return()=>clearInterval(t);},[]);
 
-  const nbaLive=nbaGames.filter(g=>g.isLive);
-  const nbaScheduled=nbaGames.filter(g=>!g.isLive&&!g.isFinished);
-  const nhlLive=nhlGames.filter(g=>g.isLive);
-  const nhlScheduled=nhlGames.filter(g=>!g.isLive&&!g.isFinished);
-  const selectedNBA=nbaGames.find(g=>g.id===selectedNBAId);
-  const selectedNHL=nhlGames.find(g=>g.id===selectedNHLId);
-  const nbaSig=selectedNBA?getLiveSignalNBA(selectedNBA):{type:"SCHEDULED",label:"",edge:0,confidence:0,projection:0};
-  const nhlSig=selectedNHL?getLiveSignalNHL(selectedNHL):{type:"SCHEDULED",label:"",edge:0,confidence:0,projection:0};
-  const totalLive=nbaLive.length+nhlLive.length;
+  const liveNBA=nbaGames.filter(g=>g.isLive);
+  const upcomingNBA=nbaGames.filter(g=>!g.isLive);
+  const liveNHL=nhlGames.filter(g=>g.isLive);
+  const upcomingNHL=nhlGames.filter(g=>!g.isLive);
+
+  const timeStr=now.toLocaleTimeString("fr-CA",{hour:"2-digit",minute:"2-digit",second:"2-digit",timeZone:"America/Toronto"});
 
   return(
-    <div style={{minHeight:"100vh",background:"#f5f5f5",color:"#111",fontFamily:"monospace"}}>
-      <div style={{borderBottom:"1px solid #e0e0e0",padding:"14px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",background:"#ffffff",position:"sticky",top:0,zIndex:100,boxShadow:"0 1px 8px #00000010"}}>
-        <span style={{background:"linear-gradient(135deg,#7c3aed,#00aa55)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontSize:15,fontWeight:900,letterSpacing:2}}>NBA × NHL SIGNALS</span>
-        <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          {lastUpdate&&<span style={{color:"#aaa",fontSize:8}}>↻ {lastUpdate}</span>}
-          {totalLive>0&&<span style={{background:"#cc000015",border:"1px solid #cc000030",borderRadius:4,padding:"3px 9px",color:"#cc0000",fontSize:9,fontWeight:700}}>● {totalLive} LIVE</span>}
+    <div style={{background:"#f5f5f5",minHeight:"100vh",fontFamily:"monospace",maxWidth:430,margin:"0 auto",paddingBottom:40}}>
+      {/* Header */}
+      <div style={{background:"#fff",borderBottom:"1px solid #e0e0e0",padding:"14px 16px 10px",position:"sticky",top:0,zIndex:100}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+          <div style={{fontSize:15,fontWeight:900,letterSpacing:2}}>
+            <span style={{color:"#e87722"}}>NBA</span>
+            <span style={{color:"#ccc"}}> × </span>
+            <span style={{color:"#0066cc"}}>NHL</span>
+            <span style={{color:"#333"}}> SIGNALS</span>
+          </div>
+          <div style={{color:"#aaa",fontSize:10}}>⏱ {timeStr}</div>
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          {[{id:"nba",label:"🏀 NBA"},{id:"nhl",label:"🏒 NHL"}].map(t=>(
+            <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,padding:"8px 0",borderRadius:8,border:"none",fontFamily:"monospace",fontWeight:700,fontSize:13,cursor:"pointer",background:tab===t.id?(t.id==="nba"?"#e87722":"#0066cc"):"#f0f0f0",color:tab===t.id?"#fff":"#666",transition:"all 0.2s"}}>
+              {t.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div style={{padding:"10px 12px 0",display:"flex",gap:8}}>
-        <button onClick={()=>setTab("nba")} style={{flex:1,padding:"9px 0",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"monospace",fontSize:12,fontWeight:900,background:tab==="nba"?"linear-gradient(135deg,#7c3aed,#5b21b6)":"#ffffff",color:tab==="nba"?"#fff":"#888",boxShadow:tab==="nba"?"0 2px 12px #7c3aed30":"0 1px 4px #00000010"}}>
-          🏀 NBA{nbaLive.length>0?` ● ${nbaLive.length}`:""}
-        </button>
-        <button onClick={()=>setTab("nhl")} style={{flex:1,padding:"9px 0",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"monospace",fontSize:12,fontWeight:900,background:tab==="nhl"?"linear-gradient(135deg,#0066cc,#003399)":"#ffffff",color:tab==="nhl"?"#fff":"#888",boxShadow:tab==="nhl"?"0 2px 12px #0066cc30":"0 1px 4px #00000010"}}>
-          🏒 NHL{nhlLive.length>0?` ● ${nhlLive.length}`:""}
-        </button>
-      </div>
+      <div style={{padding:"12px 12px 0"}}>
+        {loading&&<div style={{textAlign:"center",color:"#aaa",padding:40,fontSize:12}}>Chargement...</div>}
 
-      {status==="loading"&&(
-        <div style={{display:"flex",justifyContent:"center",alignItems:"center",height:"60vh",flexDirection:"column",gap:14}}>
-          <div style={{color:"#aaa",fontSize:11,letterSpacing:2}}>Chargement...</div>
-          <div style={{display:"flex",gap:6}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:"#7c3aed",opacity:0.3+i*0.3}}/>)}</div>
-        </div>
-      )}
-
-      {status==="error"&&(
-        <div style={{margin:20,background:"#fff5f5",border:"1px solid #cc000030",borderRadius:12,padding:"18px 22px"}}>
-          <div style={{color:"#cc0000",fontSize:12,marginBottom:8,fontWeight:700}}>⚠️ Impossible de charger les données</div>
-          <button onClick={()=>{setStatus("loading");loadData();}} style={{background:"#7c3aed15",border:"1px solid #7c3aed30",borderRadius:6,color:"#7c3aed",fontFamily:"monospace",fontSize:11,padding:"6px 14px",cursor:"pointer",fontWeight:700}}>Réessayer</button>
-        </div>
-      )}
-
-      {status==="ok"&&(
-        <div style={{padding:12,display:"flex",flexDirection:"column",gap:8}}>
-          {tab==="nba"&&(<>
-            {nbaLive.length>0&&(<>
-              <div style={{color:"#cc0000",fontSize:8,letterSpacing:3,paddingLeft:3,fontWeight:700}}>● MATCHS EN DIRECT NBA</div>
-              {nbaLive.map(g=><NBALiveCard key={g.id} game={g} selected={selectedNBAId===g.id} onSelect={setSelectedNBAId}/>)}
-            </>)}
-            {selectedNBA&&selectedNBA.isLive&&selectedNBA.total&&(
-              <div style={{background:"#ffffff",border:`1px solid ${BORDERCOLORS[nbaSig.type]}`,borderRadius:15,padding:"16px 18px",boxShadow:"0 1px 8px #00000010"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                  <div>
-                    <div style={{color:"#aaa",fontSize:9,letterSpacing:2,marginBottom:4}}>SIGNAL LIVE NBA</div>
-                    <div style={{color:COLORS[nbaSig.type],fontSize:22,fontWeight:900}}>{nbaSig.label}</div>
-                    <div style={{color:"#555",fontSize:10,marginTop:2,fontWeight:700}}>{selectedNBA.awayFull} @ {selectedNBA.homeFull}</div>
-                  </div>
-                  <Ring value={nbaSig.confidence} color={COLORS[nbaSig.type]} size={62}/>
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:10}}>
-                  {[{label:"PROJETÉ",val:nbaSig.projection,color:COLORS[nbaSig.type]},{label:"LINE",val:selectedNBA.total,color:"#555"},{label:"EDGE",val:`${nbaSig.edge>0?"+":""}${nbaSig.edge}`,color:nbaSig.edge>3?"#007733":nbaSig.edge<-3?"#cc3300":"#888"}].map((m,i)=>(
-                    <div key={i} style={{background:"#f4f4f4",border:"1px solid #e0e0e0",borderRadius:10,padding:"12px"}}>
-                      <div style={{color:"#aaa",fontSize:8,marginBottom:3}}>{m.label}</div>
-                      <div style={{color:m.color,fontSize:20,fontWeight:900}}>{m.val}</div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{background:"#f4f4f4",borderRadius:10,padding:"14px"}}>
-                  <div style={{color:"#7c3aed",fontSize:12,fontWeight:800,marginBottom:8}}>
-                    {nbaSig.type==="STRONG_OVER"&&"→ BET OVER — forte conviction"}
-                    {nbaSig.type==="OVER"&&"→ OVER possible — conviction moyenne"}
-                    {nbaSig.type==="STRONG_UNDER"&&"→ BET UNDER — forte conviction"}
-                    {nbaSig.type==="UNDER"&&"→ UNDER possible — surveiller"}
-                    {nbaSig.type==="NEUTRAL"&&"→ Pas d'edge clair — attendre"}
-                  </div>
-                  <a href="https://polymarket.com/sports/basketball/nba" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,background:"linear-gradient(135deg,#7c3aed,#5b21b6)",color:"#fff",textDecoration:"none",borderRadius:7,padding:"8px 14px",fontSize:11,fontWeight:700}}>🔗 OUVRIR POLYMARKET</a>
-                </div>
-              </div>
-            )}
-            {nbaScheduled.length>0&&(<>
-              <div style={{color:"#555",fontSize:8,letterSpacing:3,paddingLeft:3,fontWeight:700,marginTop:4}}>📊 PRÉDICTIONS PRÉ-MATCH NBA</div>
-              {nbaScheduled.map(g=><NBAPreMatchCard key={g.id} game={g} teamStats={teamStats}/>)}
-            </>)}
-            {nbaGames.length===0&&<div style={{textAlign:"center",color:"#aaa",padding:40,fontSize:12}}>Aucun match NBA aujourd'hui</div>}
-          </>)}
-
-          {tab==="nhl"&&(<>
-            {nhlLive.length>0&&(<>
-              <div style={{color:"#cc0000",fontSize:8,letterSpacing:3,paddingLeft:3,fontWeight:700}}>● MATCHS EN DIRECT NHL</div>
-              {nhlLive.map(g=><NHLLiveCard key={g.id} game={g} selected={selectedNHLId===g.id} onSelect={setSelectedNHLId}/>)}
-            </>)}
-            {selectedNHL&&selectedNHL.isLive&&selectedNHL.total&&(
-              <div style={{background:"#ffffff",border:`1px solid ${BORDERCOLORS[nhlSig.type]}`,borderRadius:15,padding:"16px 18px",boxShadow:"0 1px 8px #00000010"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                  <div>
-                    <div style={{color:"#aaa",fontSize:9,letterSpacing:2,marginBottom:4}}>SIGNAL LIVE NHL</div>
-                    <div style={{color:COLORS[nhlSig.type],fontSize:22,fontWeight:900}}>{nhlSig.label}</div>
-                    <div style={{color:"#555",fontSize:10,marginTop:2,fontWeight:700}}>{selectedNHL.awayFull} @ {selectedNHL.homeFull}</div>
-                  </div>
-                  <Ring value={nhlSig.confidence} color={COLORS[nhlSig.type]} size={62}/>
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:10}}>
-                  {[{label:"PROJETÉ",val:nhlSig.projection,color:COLORS[nhlSig.type]},{label:"LINE",val:selectedNHL.total,color:"#555"},{label:"EDGE",val:`${nhlSig.edge>0?"+":""}${nhlSig.edge}`,color:nhlSig.edge>0.5?"#007733":nhlSig.edge<-0.5?"#cc3300":"#888"}].map((m,i)=>(
-                    <div key={i} style={{background:"#f4f4f4",border:"1px solid #e0e0e0",borderRadius:10,padding:"12px"}}>
-                      <div style={{color:"#aaa",fontSize:8,marginBottom:3}}>{m.label}</div>
-                      <div style={{color:m.color,fontSize:20,fontWeight:900}}>{m.val}</div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{background:"#f4f4f4",borderRadius:10,padding:"14px"}}>
-                  <div style={{color:"#0066cc",fontSize:12,fontWeight:800,marginBottom:8}}>
-                    {nhlSig.type==="STRONG_OVER"&&"→ BET OVER — forte conviction"}
-                    {nhlSig.type==="OVER"&&"→ OVER possible — conviction moyenne"}
-                    {nhlSig.type==="STRONG_UNDER"&&"→ BET UNDER — forte conviction"}
-                    {nhlSig.type==="UNDER"&&"→ UNDER possible — surveiller"}
-                    {nhlSig.type==="NEUTRAL"&&"→ Pas d'edge clair — attendre"}
-                  </div>
-                  <a href="https://www.betway.com/sports/hockey" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,background:"linear-gradient(135deg,#0066cc,#003399)",color:"#fff",textDecoration:"none",borderRadius:7,padding:"8px 14px",fontSize:11,fontWeight:700}}>🔗 OUVRIR SPORTSBOOK</a>
-                </div>
-              </div>
-            )}
-            {nhlScheduled.length>0&&(<>
-              <div style={{color:"#555",fontSize:8,letterSpacing:3,paddingLeft:3,fontWeight:700,marginTop:4}}>📊 PRÉDICTIONS PRÉ-MATCH NHL</div>
-              {nhlScheduled.map(g=><NHLPreMatchCard key={g.id} game={g} nhlStats={nhlStats}/>)}
-            </>)}
-            {nhlGames.length===0&&<div style={{textAlign:"center",color:"#aaa",padding:40,fontSize:12}}>Aucun match NHL aujourd'hui</div>}
-          </>)}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function NBAPreMatchCard({game,teamStats}){
-  const pred=getNBAPreMatch(game,teamStats);
-  const favHome=game.spreadTeam&&(game.home===game.spreadTeam||game.homeFull.includes(game.spreadTeam));
-  const homeSpread=game.spread?(favHome?-Math.abs(game.spread):+Math.abs(game.spread)):null;
-  const awaySpread=game.spread?(favHome?+Math.abs(game.spread):-Math.abs(game.spread)):null;
-  return(
-    <div style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:13,padding:"15px 17px",boxShadow:"0 1px 6px #00000008"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <NBALogo name={game.awayFull} size={36}/>
-          <div><span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span>{pred?.awayB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>😴 B2B</div>}</div>
-        </div>
-        <div style={{textAlign:"center"}}>
-          <div style={{color:"#111",fontSize:18,fontWeight:900}}>VS</div>
-          <div style={{color:"#888",fontSize:10,fontWeight:700}}>{toQcTime(game.time)} HE</div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <div style={{textAlign:"right"}}><span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span>{pred?.homeB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>😴 B2B</div>}</div>
-          <NBALogo name={game.homeFull} size={36}/>
-        </div>
-      </div>
-      <div style={{background:"#f4f4f4",borderRadius:10,padding:"10px 12px"}}>
-        {pred?(
+        {/* NBA TAB */}
+        {!loading&&tab==="nba"&&(
           <>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:8}}>
-              <div style={{textAlign:"center"}}><div style={{color:"#777",fontSize:8}}>MOY {game.away}</div><div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.awayPpg}</div><div style={{color:"#aaa",fontSize:8}}>DEF {pred.awayOppg}</div></div>
-              <div style={{textAlign:"center"}}><div style={{color:"#777",fontSize:8}}>PROJECTION</div><div style={{color:"#7c3aed",fontSize:20,fontWeight:900}}>{pred.proj}</div><div style={{color:"#bbb",fontSize:7}}>{pred.paceUsed&&"⚡pace "}{pred.recentUsed&&"📈forme"}</div></div>
-              <div style={{textAlign:"center"}}><div style={{color:"#777",fontSize:8}}>MOY {game.home}</div><div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.homePpg}</div><div style={{color:"#aaa",fontSize:8}}>DEF {pred.homeOppg}</div></div>
-            </div>
-            <div style={{height:5,borderRadius:3,overflow:"hidden",display:"flex",marginBottom:8}}>
-              <div style={{width:`${pred.awayPct}%`,background:"#7c3aed",transition:"width 0.6s"}}/>
-              <div style={{width:`${pred.homePct}%`,background:"#5b21b6"}}/>
-            </div>
-            <div style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:8,padding:"8px 12px",marginBottom:8}}>
-              <div style={{color:"#777",fontSize:8,marginBottom:6,letterSpacing:1,fontWeight:700}}>SCORE PRÉDIT / CHANCE DE VICTOIRE</div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{color:"#111",fontWeight:700,fontSize:11,width:32}}>{game.away}</span>
-                  <span style={{color:pred.awayPct>pred.homePct?"#007733":"#cc3300",fontSize:22,fontWeight:900}}>{pred.awayProjScore}</span>
+            {liveNBA.length>0&&(
+              <>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+                  <div style={{width:7,height:7,borderRadius:"50%",background:"#cc0000",animation:"pulse 1.2s infinite"}}/>
+                  <span style={{color:"#cc0000",fontSize:10,letterSpacing:2,fontWeight:700}}>MATCHS EN DIRECT NBA</span>
                 </div>
-                <div style={{background:pred.awayPct>pred.homePct?"#00aa5515":"#ff330015",border:`1px solid ${pred.awayPct>pred.homePct?"#00aa5530":"#ff330025"}`,borderRadius:6,padding:"3px 10px",color:pred.awayPct>pred.homePct?"#007733":"#cc3300",fontSize:13,fontWeight:900}}>{pred.awayPct}%</div>
-              </div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{color:"#111",fontWeight:700,fontSize:11,width:32}}>{game.home}</span>
-                  <span style={{color:pred.homePct>pred.awayPct?"#007733":"#cc3300",fontSize:22,fontWeight:900}}>{pred.homeProjScore}</span>
+                {liveNBA.map((g,i)=>{
+                  const sig=getLiveSignalNBA(g);
+                  const color=COLORS[sig.type];
+                  const bg=BGCOLORS[sig.type];
+                  const border=BORDERCOLORS[sig.type];
+                  const progPct=Math.min(100,(played(g.quarter,g.timeLeft)/TOTAL_MIN)*100);
+                  return(
+                    <div key={i} style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:13,padding:"14px 15px",marginBottom:10,boxShadow:"0 1px 6px #00000008"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                        <div style={{display:"flex",alignItems:"center",gap:5}}>
+                          <div style={{width:6,height:6,borderRadius:"50%",background:"#cc0000"}}/>
+                          <span style={{color:"#cc0000",fontSize:8,fontWeight:700}}>LIVE</span>
+                        </div>
+                        <span style={{color:"#e87722",fontSize:9,fontWeight:700}}>Q{g.quarter} {g.timeLeft}</span>
+                      </div>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <NBALogo name={g.awayFull||g.away} size={32}/>
+                          <span style={{color:"#111",fontWeight:800,fontSize:14}}>{g.away}</span>
+                        </div>
+                        <div style={{textAlign:"center"}}>
+                          <div style={{color:"#111",fontSize:26,fontWeight:900,letterSpacing:2}}>{g.awayScore} – {g.homeScore}</div>
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <span style={{color:"#111",fontWeight:800,fontSize:14}}>{g.home}</span>
+                          <NBALogo name={g.homeFull||g.home} size={32}/>
+                        </div>
+                      </div>
+                      <div style={{height:3,background:"#e0e0e0",borderRadius:2,overflow:"hidden",marginBottom:10}}>
+                        <div style={{height:"100%",width:`${progPct}%`,background:"#e87722",transition:"width 1s"}}/>
+                      </div>
+                      <div style={{background:bg,border:`1px solid ${border}`,borderRadius:10,padding:"10px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                        <div>
+                          <div style={{color:color,fontSize:13,fontWeight:900,marginBottom:2}}>{sig.label}</div>
+                          {sig.projection>0&&<div style={{color:"#888",fontSize:9}}>Proj: {sig.projection} {g.total?`| Ligne: ${g.total}`:""}</div>}
+                        </div>
+                        <Ring value={sig.confidence} color={color} size={52}/>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+
+            {upcomingNBA.length>0&&(
+              <>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8,marginTop:liveNBA.length>0?12:0}}>
+                  <span style={{fontSize:10}}>📊</span>
+                  <span style={{color:"#e87722",fontSize:10,letterSpacing:2,fontWeight:700}}>PRÉDICTIONS PRÉ-MATCH NBA</span>
                 </div>
-                <div style={{background:pred.homePct>pred.awayPct?"#00aa5515":"#ff330015",border:`1px solid ${pred.homePct>pred.awayPct?"#00aa5530":"#ff330025"}`,borderRadius:6,padding:"3px 10px",color:pred.homePct>pred.awayPct?"#007733":"#cc3300",fontSize:13,fontWeight:900}}>{pred.homePct}%</div>
-              </div>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-              {pred.spreadCover&&(
-                <div>
-                  <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:5,fontWeight:700}}>SPREAD PICK</div>
-                  <div style={{background:pred.spreadCover.spread>0?"#00aa5515":"#ff330015",border:`1px solid ${pred.spreadCover.spread>0?"#00aa5530":"#ff330025"}`,borderRadius:8,padding:"8px",color:pred.spreadCover.spread>0?"#007733":"#cc3300",fontSize:13,fontWeight:900,textAlign:"center"}}>
-                    {pred.spreadCover.team} {pred.spreadCover.spread>0?"+":""}{pred.spreadCover.spread}
-                  </div>
-                </div>
-              )}
-              {game.total&&(
-                <div>
-                  <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:5,fontWeight:700}}>TOTAL PICK</div>
-                  <div style={{background:pred.proj>game.total?"#00aa5515":"#ff330015",border:`1px solid ${pred.proj>game.total?"#00aa5530":"#ff330025"}`,borderRadius:8,padding:"8px",color:pred.proj>game.total?"#007733":"#cc3300",fontSize:13,fontWeight:900,textAlign:"center"}}>
-                    {pred.proj>game.total?`O ${game.total}`:`U ${game.total}`}
-                  </div>
-                </div>
-              )}
-            </div>
-            <div style={{borderTop:"1px solid #e8e8e8",paddingTop:8,display:"flex",justifyContent:"center"}}>
-              <div style={{background:"#00aa5515",border:"1px solid #00aa5530",borderRadius:6,padding:"4px 14px",color:"#007733",fontSize:11,fontWeight:900}}>
-                {pred.winner?`${pred.winner} GAGNE 🏆`:"SERRÉ 🤔"}
-              </div>
-            </div>
+                {upcomingNBA.map((g,i)=>{
+                  const pm=getNBAPreMatch(g,teamStats);
+                  if(!pm)return null;
+                  const overUnder=pm.proj>=(g.total||0)?pm.proj>g.total?"OVER":"EQUAL":"UNDER";
+                  const ouColor=pm.proj>(g.total||0)?"#009944":"#cc3300";
+                  return(
+                    <div key={i} style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:13,padding:"14px 15px",marginBottom:10,boxShadow:"0 1px 6px #00000008"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <NBALogo name={g.awayFull||g.away} size={34}/>
+                          <div>
+                            <span style={{color:"#111",fontWeight:800,fontSize:14}}>{g.away}</span>
+                            {pm.awayB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>😴 B2B</div>}
+                          </div>
+                        </div>
+                        <div style={{textAlign:"center"}}>
+                          <div style={{color:"#111",fontSize:13,fontWeight:900}}>VS</div>
+                          <div style={{color:"#888",fontSize:9}}>{toQcTime(g.time)+" HE"}</div>
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <div style={{textAlign:"right"}}>
+                            <span style={{color:"#111",fontWeight:800,fontSize:14}}>{g.home}</span>
+                            {pm.homeB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>😴 B2B</div>}
+                          </div>
+                          <NBALogo name={g.homeFull||g.home} size={34}/>
+                        </div>
+                      </div>
+                      <div style={{background:"#f4f4f4",borderRadius:10,padding:"11px 12px"}}>
+                        <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:8,fontWeight:700}}>SCORE PRÉDIT / CHANCE DE VICTOIRE</div>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                          <div>
+                            <div style={{color:"#888",fontSize:9,marginBottom:2}}>{g.away}</div>
+                            <div style={{color:"#e87722",fontSize:28,fontWeight:900,lineHeight:1}}>{pm.awayProjScore}</div>
+                          </div>
+                          <div style={{height:8,flex:1,margin:"0 10px",borderRadius:4,overflow:"hidden",display:"flex",alignSelf:"center"}}>
+                            <div style={{width:`${pm.awayPct}%`,background:pm.awayPct>pm.homePct?"#e87722":"#cc3300",borderRadius:"4px 0 0 4px"}}/>
+                            <div style={{width:`${pm.homePct}%`,background:pm.homePct>pm.awayPct?"#e87722":"#cc3300",borderRadius:"0 4px 4px 0"}}/>
+                          </div>
+                          <div style={{textAlign:"right"}}>
+                            <div style={{color:"#888",fontSize:9,marginBottom:2}}>{g.home}</div>
+                            <div style={{color:"#e87722",fontSize:28,fontWeight:900,lineHeight:1}}>{pm.homeProjScore}</div>
+                          </div>
+                        </div>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                          <div style={{background:"#fff",borderRadius:8,padding:"4px 10px",border:"1px solid #e0e0e0"}}>
+                            <div style={{color:"#aaa",fontSize:7}}>CHANCE</div>
+                            <div style={{color:pm.awayPct>pm.homePct?"#e87722":"#cc3300",fontSize:13,fontWeight:900}}>{pm.awayPct}%</div>
+                          </div>
+                          {pm.winner&&<div style={{background:"#e8730015",border:"1px solid #e8730030",borderRadius:8,padding:"4px 10px"}}>
+                            <div style={{color:"#e87722",fontSize:11,fontWeight:900}}>🏆 {pm.winner}</div>
+                          </div>}
+                          <div style={{background:"#fff",borderRadius:8,padding:"4px 10px",border:"1px solid #e0e0e0"}}>
+                            <div style={{color:"#aaa",fontSize:7}}>CHANCE</div>
+                            <div style={{color:pm.homePct>pm.awayPct?"#e87722":"#cc3300",fontSize:13,fontWeight:900}}>{pm.homePct}%</div>
+                          </div>
+                        </div>
+                        <div style={{display:"flex",gap:8}}>
+                          {pm.spreadCover&&<div style={{flex:1,background:"#00aa5510",border:"1px solid #00aa5525",borderRadius:8,padding:"6px 8px",textAlign:"center"}}>
+                            <div style={{color:"#aaa",fontSize:7,marginBottom:2}}>SPREAD PICK</div>
+                            <div style={{color:"#007733",fontSize:12,fontWeight:900}}>{pm.spreadCover.team} {pm.spreadCover.spread>0?"+":""}{pm.spreadCover.spread}</div>
+                          </div>}
+                          {g.total&&<div style={{flex:1,background:`${ouColor}10`,border:`1px solid ${ouColor}25`,borderRadius:8,padding:"6px 8px",textAlign:"center"}}>
+                            <div style={{color:"#aaa",fontSize:7,marginBottom:2}}>TOTAL PICK</div>
+                            <div style={{color:ouColor,fontSize:12,fontWeight:900}}>{pm.proj>(g.total||0)?"O":"U"} {g.total} ⚡</div>
+                          </div>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+            {!loading&&liveNBA.length===0&&upcomingNBA.length===0&&<div style={{textAlign:"center",color:"#aaa",padding:40,fontSize:12}}>Aucun match NBA aujourd'hui</div>}
           </>
-        ):(
-          <div style={{color:"#aaa",fontSize:9,textAlign:"center",padding:"8px 0"}}>Stats en chargement...</div>
+        )}
+        {/* NHL TAB */}
+        {!loading&&tab==="nhl"&&(
+          <>
+            {/* LIVE NHL */}
+            {liveNHL.length>0&&(
+              <>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+                  <div style={{width:7,height:7,borderRadius:"50%",background:"#cc0000",animation:"pulse 1.2s infinite"}}/>
+                  <span style={{color:"#cc0000",fontSize:10,letterSpacing:2,fontWeight:700}}>MATCHS EN DIRECT NHL</span>
+                </div>
+                {liveNHL.map((g,i)=>{
+                  const homeAbbr=getNHLAbbr(g.homeFull||g.home);
+                  const awayAbbr=getNHLAbbr(g.awayFull||g.away);
+                  const pred=getNHLWinner(awayAbbr,homeAbbr);
+                  const baseHomePct=pred?pred.homePct:50;
+                  const homeWinProb=getLiveWinProb(g.homeScore||0,g.awayScore||0,g.period||1,g.timeLeft||"20:00",baseHomePct);
+                  const awayWinProb=100-homeWinProb;
+                  const homeLeading=(g.homeScore||0)>(g.awayScore||0);
+                  const awayLeading=(g.awayScore||0)>(g.homeScore||0);
+                  const baseAwayPct=pred?pred.awayPct:50;
+                  const homeTrend=homeWinProb>baseHomePct?"↑":homeWinProb<baseHomePct?"↓":"→";
+                  const awayTrend=awayWinProb>baseAwayPct?"↑":awayWinProb<baseAwayPct?"↓":"→";
+                  const PM=20,TOTAL=60;
+                  const tParts=(g.timeLeft||"20:00").split(":").map(Number);
+                  const minLeft=tParts[0]+tParts[1]/60;
+                  const playedMin=((g.period||1)-1)*PM+(PM-minLeft);
+                  const progress=Math.min(100,(playedMin/TOTAL)*100);
+                  const predictedWinner=pred?pred.winner:homeAbbr;
+                  const predictedPct=pred?(predictedWinner===homeAbbr?pred.homePct:pred.awayPct):50;
+                  const winnerColor=getNHLColor(predictedWinner);
+                  return(
+                    <div key={i} style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:13,padding:"14px 15px",marginBottom:10,boxShadow:"0 1px 6px #00000008"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                        <div style={{display:"flex",alignItems:"center",gap:5}}>
+                          <div style={{width:6,height:6,borderRadius:"50%",background:"#cc0000"}}/>
+                          <span style={{color:"#cc0000",fontSize:8,fontWeight:700}}>LIVE</span>
+                        </div>
+                        <span style={{color:"#e67e00",fontSize:9,fontWeight:700}}>P{g.period||1} {g.timeLeft||"20:00"}</span>
+                      </div>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <NHLLogo name={g.awayFull||g.away} size={32}/>
+                          <span style={{color:"#111",fontWeight:800,fontSize:14}}>{awayAbbr}</span>
+                        </div>
+                        <div style={{textAlign:"center"}}>
+                          <div style={{color:"#111",fontSize:26,fontWeight:900,letterSpacing:2}}>
+                            <span style={{color:awayLeading?"#007733":"#111"}}>{g.awayScore||0}</span>
+                            <span style={{color:"#ccc"}}> – </span>
+                            <span style={{color:homeLeading?"#007733":"#111"}}>{g.homeScore||0}</span>
+                          </div>
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <span style={{color:"#111",fontWeight:800,fontSize:14}}>{homeAbbr}</span>
+                          <NHLLogo name={g.homeFull||g.home} size={32}/>
+                        </div>
+                      </div>
+                      <div style={{height:3,background:"#e0e0e0",borderRadius:2,overflow:"hidden",marginBottom:10}}>
+                        <div style={{height:"100%",width:`${progress}%`,background:"#0066cc",transition:"width 1s"}}/>
+                      </div>
+                      <div style={{background:"#f4f4f4",borderRadius:10,padding:"12px"}}>
+                        <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:8,fontWeight:700}}>WIN PROBABILITY LIVE</div>
+                        <div style={{height:10,borderRadius:5,overflow:"hidden",display:"flex",marginBottom:10}}>
+                          <div style={{width:`${awayWinProb}%`,background:awayWinProb>homeWinProb?"#007733":"#cc3300",borderRadius:"5px 0 0 5px",transition:"width 0.8s"}}/>
+                          <div style={{width:`${homeWinProb}%`,background:homeWinProb>awayWinProb?"#007733":"#cc3300",borderRadius:"0 5px 5px 0",transition:"width 0.8s"}}/>
+                        </div>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                          <div style={{textAlign:"center"}}>
+                            <div style={{color:"#888",fontSize:8}}>{awayAbbr}</div>
+                            <div style={{display:"flex",alignItems:"baseline",gap:3}}>
+                              <span style={{color:awayWinProb>homeWinProb?"#007733":"#cc3300",fontSize:26,fontWeight:900}}>{awayWinProb}%</span>
+                              <span style={{color:awayTrend==="↑"?"#007733":awayTrend==="↓"?"#cc3300":"#888",fontSize:14,fontWeight:700}}>{awayTrend}</span>
+                            </div>
+                          </div>
+                          <div style={{color:"#ddd",fontSize:18}}>|</div>
+                          <div style={{textAlign:"center"}}>
+                            <div style={{color:"#888",fontSize:8}}>{homeAbbr}</div>
+                            <div style={{display:"flex",alignItems:"baseline",gap:3}}>
+                              <span style={{color:homeWinProb>awayWinProb?"#007733":"#cc3300",fontSize:26,fontWeight:900}}>{homeWinProb}%</span>
+                              <span style={{color:homeTrend==="↑"?"#007733":homeTrend==="↓"?"#cc3300":"#888",fontSize:14,fontWeight:700}}>{homeTrend}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:8,padding:"6px 10px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                          <div style={{color:"#aaa",fontSize:8}}>MODÈLE PRÉ-MATCH</div>
+                          <div style={{color:winnerColor,fontSize:10,fontWeight:800}}>{predictedWinner} {predictedPct}% prédit</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+
+            {/* PRÉ-MATCH NHL */}
+            {upcomingNHL.length>0&&(
+              <>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8,marginTop:liveNHL.length>0?12:0}}>
+                  <span style={{fontSize:10}}>📊</span>
+                  <span style={{color:"#0066cc",fontSize:10,letterSpacing:2,fontWeight:700}}>PRÉDICTIONS NHL — GAGNANT</span>
+                </div>
+                {upcomingNHL.map((g,i)=>{
+                  const homeAbbr=getNHLAbbr(g.homeFull||g.home);
+                  const awayAbbr=getNHLAbbr(g.awayFull||g.away);
+                  const pred=getNHLWinner(awayAbbr,homeAbbr);
+                  if(!pred)return null;
+                  const homeWins=pred.homePct>=pred.awayPct;
+                  const s=NHL_STATS;
+                  return(
+                    <div key={i} style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:13,padding:"14px 15px",marginBottom:10,boxShadow:"0 1px 6px #00000008"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <NHLLogo name={g.awayFull||g.away} size={34}/>
+                          <span style={{color:"#111",fontWeight:800,fontSize:14}}>{awayAbbr}</span>
+                        </div>
+                        <div style={{textAlign:"center"}}>
+                          <div style={{color:"#111",fontSize:13,fontWeight:900}}>VS</div>
+                          <div style={{color:"#888",fontSize:9}}>{toQcTime(g.time)+" HE"}</div>
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <span style={{color:"#111",fontWeight:800,fontSize:14}}>{homeAbbr}</span>
+                          <NHLLogo name={g.homeFull||g.home} size={34}/>
+                        </div>
+                      </div>
+                      <div style={{background:"#f4f4f4",borderRadius:10,padding:"12px"}}>
+                        <div style={{height:8,borderRadius:4,overflow:"hidden",display:"flex",marginBottom:10}}>
+                          <div style={{width:`${pred.awayPct}%`,background:!homeWins?"#0066cc":"#cc3300",borderRadius:"4px 0 0 4px"}}/>
+                          <div style={{width:`${pred.homePct}%`,background:homeWins?"#0066cc":"#cc3300",borderRadius:"0 4px 4px 0"}}/>
+                        </div>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                          <div style={{textAlign:"center"}}>
+                            <div style={{color:"#888",fontSize:8,marginBottom:2}}>{awayAbbr}</div>
+                            <div style={{color:!homeWins?"#0066cc":"#cc3300",fontSize:28,fontWeight:900,lineHeight:1}}>{pred.awayPct}%</div>
+                          </div>
+                          <div style={{color:"#ddd",fontSize:20}}>|</div>
+                          <div style={{textAlign:"center"}}>
+                            <div style={{color:"#888",fontSize:8,marginBottom:2}}>{homeAbbr}</div>
+                            <div style={{color:homeWins?"#0066cc":"#cc3300",fontSize:28,fontWeight:900,lineHeight:1}}>{pred.homePct}%</div>
+                          </div>
+                        </div>
+                        <div style={{display:"flex",justifyContent:"space-around",marginBottom:12,background:"#fff",borderRadius:8,padding:"8px 4px"}}>
+                          {[{label:"CF%",away:s[awayAbbr]?.cf,home:s[homeAbbr]?.cf},{label:"xGF%",away:s[awayAbbr]?.xgf,home:s[homeAbbr]?.xgf},{label:"HDCF%",away:s[awayAbbr]?.hdcf,home:s[homeAbbr]?.hdcf},{label:"SV%",away:s[awayAbbr]?.svPct,home:s[homeAbbr]?.svPct},{label:"PP%",away:s[awayAbbr]?.pp,home:s[homeAbbr]?.pp}].map((stat,j)=>(
+                            <div key={j} style={{textAlign:"center"}}>
+                              <div style={{color:"#aaa",fontSize:7,marginBottom:3}}>{stat.label}</div>
+                              <div style={{color:(stat.away||0)>(stat.home||0)?"#0066cc":"#cc3300",fontSize:9,fontWeight:800}}>{stat.away}</div>
+                              <div style={{color:"#ccc",fontSize:7}}>vs</div>
+                              <div style={{color:(stat.home||0)>(stat.away||0)?"#0066cc":"#cc3300",fontSize:9,fontWeight:800}}>{stat.home}</div>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{display:"flex",justifyContent:"center"}}>
+                          <div style={{background:"#0066cc15",border:"1px solid #0066cc30",borderRadius:8,padding:"8px 20px",color:"#0066cc",fontSize:13,fontWeight:900}}>
+                            {pred.winner} GAGNE 🏆
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+            {!loading&&liveNHL.length===0&&upcomingNHL.length===0&&<div style={{textAlign:"center",color:"#aaa",padding:40,fontSize:12}}>Aucun match NHL aujourd'hui</div>}
+          </>
         )}
       </div>
-    </div>
-  );
-}
-
-function NHLPreMatchCard({game}){
-  const pred=getNHLPreMatch(game);
-  return(
-    <div style={{background:"#fff",border:`1px solid ${pred?.isOT?"#e67e0030":"#e0e0e0"}`,borderRadius:13,padding:"15px 17px",boxShadow:"0 1px 6px #00000008"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <NHLLogo name={game.awayFull} size={36}/>
-          <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span>
-        </div>
-        <div style={{textAlign:"center"}}>
-          <div style={{color:"#111",fontSize:16,fontWeight:900}}>VS</div>
-          <div style={{color:"#888",fontSize:9}}>{toQcTime(game.time)} HE</div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span>
-          <NHLLogo name={game.homeFull} size={36}/>
-        </div>
-      </div>
-      <div style={{background:"#f4f4f4",borderRadius:10,padding:"10px 12px"}}>
-        {pred?(
-          <>
-            <div style={{height:5,borderRadius:3,overflow:"hidden",display:"flex",marginBottom:8}}>
-              <div style={{width:`${pred.awayPct}%`,background:pred.isOT?"#e67e00":"#0066cc",transition:"width 0.6s"}}/>
-              <div style={{width:`${pred.homePct}%`,background:pred.isOT?"#e67e00":"#003399"}}/>
-            </div>
-            <div style={{background:"#fff",border:`1px solid ${pred.isOT?"#e67e0030":"#e0e0e0"}`,borderRadius:8,padding:"8px 12px",marginBottom:8}}>
-              <div style={{color:"#777",fontSize:8,marginBottom:6,letterSpacing:1,fontWeight:700}}>SCORE PRÉDIT / CHANCE DE VICTOIRE</div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{color:"#111",fontWeight:700,fontSize:11,width:32}}>{game.away}</span>
-                  <span style={{color:pred.isOT?"#e67e00":pred.awayPct>pred.homePct?"#007733":"#cc3300",fontSize:22,fontWeight:900}}>{pred.finalAway.toFixed(1)}</span>
-                </div>
-                <div style={{background:pred.awayPct>pred.homePct?"#00aa5515":"#ff330015",border:`1px solid ${pred.awayPct>pred.homePct?"#00aa5530":"#ff330025"}`,borderRadius:6,padding:"3px 10px",color:pred.awayPct>pred.homePct?"#007733":"#cc3300",fontSize:13,fontWeight:900}}>{pred.awayPct}%</div>
-              </div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{color:"#111",fontWeight:700,fontSize:11,width:32}}>{game.home}</span>
-                  <span style={{color:pred.isOT?"#e67e00":pred.homePct>pred.awayPct?"#007733":"#cc3300",fontSize:22,fontWeight:900}}>{pred.finalHome.toFixed(1)}</span>
-                </div>
-                <div style={{background:pred.homePct>pred.awayPct?"#00aa5515":"#ff330015",border:`1px solid ${pred.homePct>pred.awayPct?"#00aa5530":"#ff330025"}`,borderRadius:6,padding:"3px 10px",color:pred.homePct>pred.awayPct?"#007733":"#cc3300",fontSize:13,fontWeight:900}}>{pred.homePct}%</div>
-              </div>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-              {pred.puckCover&&(
-                <div>
-                  <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:5,fontWeight:700}}>SPREAD PICK</div>
-                  <div style={{background:pred.puckCover.spread==="+1.5"?"#00aa5515":"#ff330015",border:`1px solid ${pred.puckCover.spread==="+1.5"?"#00aa5530":"#ff330025"}`,borderRadius:8,padding:"8px",color:pred.puckCover.spread==="+1.5"?"#007733":"#cc3300",fontSize:13,fontWeight:900,textAlign:"center"}}>
-                    {pred.puckCover.team} {pred.puckCover.spread}
-                  </div>
-                </div>
-              )}
-              {game.total&&(
-                <div>
-                  <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:5,fontWeight:700}}>TOTAL PICK</div>
-                  <div style={{background:pred.isOT?"#e67e0015":pred.proj>game.total?"#00aa5515":"#ff330015",border:`1px solid ${pred.isOT?"#e67e0030":pred.proj>game.total?"#00aa5530":"#ff330025"}`,borderRadius:8,padding:"8px",color:pred.isOT?"#e67e00":pred.proj>game.total?"#007733":"#cc3300",fontSize:pred.isOT?11:13,fontWeight:900,textAlign:"center"}}>
-                    {pred.isOT?`O ${game.total} ⚡`:pred.proj>game.total?`O ${game.total}`:`U ${game.total}`}
-                  </div>
-                </div>
-              )}
-            </div>
-            <div style={{borderTop:"1px solid #e8e8e8",paddingTop:8,display:"flex",justifyContent:"center"}}>
-              <div style={{background:pred.isOT?"#e67e0015":"#00aa5515",border:`1px solid ${pred.isOT?"#e67e0030":"#00aa5530"}`,borderRadius:6,padding:"4px 14px",color:pred.isOT?"#e67e00":"#007733",fontSize:11,fontWeight:900}}>
-                {pred.isOT?"OVER AUTO ⚡":`${pred.winner} GAGNE 🏆`}
-              </div>
-            </div>
-          </>
-        ):(
-          <div style={{color:"#aaa",fontSize:9,textAlign:"center",padding:"8px 0"}}>Stats en chargement...</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function NBALiveCard({game,selected,onSelect}){
-  const sig=getLiveSignalNBA(game);
-  const c=COLORS[sig.type],bg=BGCOLORS[sig.type],border=BORDERCOLORS[sig.type];
-  const scored=(game.homeScore||0)+(game.awayScore||0);
-  const progress=game.total?Math.min((scored/game.total)*100,100):0;
-  const[pulse,setPulse]=useState(false);
-  useEffect(()=>{const t=setInterval(()=>setPulse(p=>!p),1600);return()=>clearInterval(t);},[]);
-  return(
-    <div onClick={()=>onSelect(game.id)} style={{background:selected?"#f8fff8":"#fff",border:`1px solid ${selected?c+"66":"#e0e0e0"}`,borderRadius:13,padding:"15px 17px",cursor:"pointer",boxShadow:selected?`0 0 18px ${c}20`:"0 1px 6px #00000008",position:"relative"}}>
-      <div style={{position:"absolute",top:11,right:12,display:"flex",alignItems:"center",gap:5}}>
-        <div style={{width:6,height:6,borderRadius:"50%",background:"#cc0000",boxShadow:pulse?"0 0 8px #cc0000":"none",transition:"box-shadow 0.4s"}}/>
-        <span style={{color:"#cc0000",fontSize:8,fontWeight:700}}>LIVE</span>
-      </div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}><NBALogo name={game.awayFull} size={36}/><span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span></div>
-        <div style={{textAlign:"center"}}>
-          <div style={{color:"#111",fontSize:22,fontWeight:900}}>{game.awayScore}–{game.homeScore}</div>
-          <div style={{color:"#e67e00",fontSize:9,fontWeight:700}}>Q{game.quarter} {game.timeLeft}</div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span><NBALogo name={game.homeFull} size={36}/></div>
-      </div>
-      {game.total&&(<>
-        <div style={{height:3,background:"#e0e0e0",borderRadius:2,overflow:"hidden",marginBottom:9}}><div style={{height:"100%",width:`${progress}%`,background:c,transition:"width 1s"}}/></div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{background:bg,border:`1px solid ${border}`,borderRadius:6,padding:"4px 9px",color:c,fontSize:11,fontWeight:800}}>{sig.label}</div>
-          <div style={{display:"flex",alignItems:"center",gap:9}}>
-            <div style={{textAlign:"right"}}>
-              <div style={{color:"#aaa",fontSize:8}}>PROJ / LINE</div>
-              <div style={{color:c,fontSize:14,fontWeight:900}}>{sig.projection} / {game.total}</div>
-            </div>
-            <Ring value={sig.confidence} color={c} size={46}/>
-          </div>
-        </div>
-      </>)}
-    </div>
-  );
-}
-
-function NHLLiveCard({game,selected,onSelect}){
-  const sig=getLiveSignalNHL(game);
-  const c=COLORS[sig.type],bg=BGCOLORS[sig.type],border=BORDERCOLORS[sig.type];
-  const scored=(game.homeScore||0)+(game.awayScore||0);
-  const progress=game.total?Math.min((scored/game.total)*100,100):0;
-  const[pulse,setPulse]=useState(false);
-  useEffect(()=>{const t=setInterval(()=>setPulse(p=>!p),1600);return()=>clearInterval(t);},[]);
-  return(
-    <div onClick={()=>onSelect(game.id)} style={{background:selected?"#f0f8ff":"#fff",border:`1px solid ${selected?c+"66":"#e0e0e0"}`,borderRadius:13,padding:"15px 17px",cursor:"pointer",boxShadow:selected?`0 0 18px ${c}20`:"0 1px 6px #00000008",position:"relative"}}>
-      <div style={{position:"absolute",top:11,right:12,display:"flex",alignItems:"center",gap:5}}>
-        <div style={{width:6,height:6,borderRadius:"50%",background:"#cc0000",boxShadow:pulse?"0 0 8px #cc0000":"none",transition:"box-shadow 0.4s"}}/>
-        <span style={{color:"#cc0000",fontSize:8,fontWeight:700}}>LIVE</span>
-      </div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}><NHLLogo name={game.awayFull} size={36}/><span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span></div>
-        <div style={{textAlign:"center"}}>
-          <div style={{color:"#111",fontSize:22,fontWeight:900}}>{game.awayScore}–{game.homeScore}</div>
-          <div style={{color:"#e67e00",fontSize:9,fontWeight:700}}>P{game.period} {game.timeLeft}</div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span><NHLLogo name={game.homeFull} size={36}/></div>
-      </div>
-      {game.total&&(<>
-        <div style={{height:3,background:"#e0e0e0",borderRadius:2,overflow:"hidden",marginBottom:9}}><div style={{height:"100%",width:`${progress}%`,background:c,transition:"width 1s"}}/></div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{background:bg,border:`1px solid ${border}`,borderRadius:6,padding:"4px 9px",color:c,fontSize:11,fontWeight:800}}>{sig.label}</div>
-          <div style={{display:"flex",alignItems:"center",gap:9}}>
-            <div style={{textAlign:"right"}}>
-              <div style={{color:"#aaa",fontSize:8}}>PROJ / LINE</div>
-              <div style={{color:c,fontSize:14,fontWeight:900}}>{sig.projection} / {game.total}</div>
-            </div>
-            <Ring value={sig.confidence} color={c} size={46}/>
-          </div>
-        </div>
-      </>)}
-    </div>
-  );
-}
-export default function App(){
-  const[tab,setTab]=useState("nba");
-  const[nbaGames,setNbaGames]=useState([]);
-  const[nhlGames,setNhlGames]=useState([]);
-  const[teamStats,setTeamStats]=useState(null);
-  const[selectedNBAId,setSelectedNBAId]=useState(null);
-  const[selectedNHLId,setSelectedNHLId]=useState(null);
-  const[status,setStatus]=useState("loading");
-  const[lastUpdate,setLastUpdate]=useState(null);
-
-  const loadData=async()=>{
-    try{
-      const[nbaRes,nhlRes,statsRes]=await Promise.all([
-        fetch(`${PROXY}/nba/scores`),
-        fetch(`${PROXY}/nhl/scores`),
-        fetch(`${PROXY}/nba/stats`),
-      ]);
-      const[nba,nhl,stats]=await Promise.all([nbaRes.json(),nhlRes.json(),statsRes.json()]);
-      if(Array.isArray(nba)){
-        setNbaGames(nba);
-        if(!selectedNBAId&&nba.length>0)setSelectedNBAId((nba.find(g=>g.isLive)||nba[0]).id);
-      }
-      if(Array.isArray(nhl)){
-        setNhlGames(nhl);
-        if(!selectedNHLId&&nhl.length>0)setSelectedNHLId((nhl.find(g=>g.isLive)||nhl[0]).id);
-      }
-      setTeamStats(stats);
-      setLastUpdate(new Date().toLocaleTimeString("fr-CA",{timeZone:"America/Toronto"}));
-      setStatus("ok");
-    }catch(e){
-      setStatus("error");
-    }
-  };
-
-  useEffect(()=>{loadData();const iv=setInterval(loadData,30000);return()=>clearInterval(iv);},[]);
-
-  const nbaLive=nbaGames.filter(g=>g.isLive);
-  const nbaScheduled=nbaGames.filter(g=>!g.isLive&&!g.isFinished);
-  const nhlLive=nhlGames.filter(g=>g.isLive);
-  const nhlScheduled=nhlGames.filter(g=>!g.isLive&&!g.isFinished);
-  const selectedNBA=nbaGames.find(g=>g.id===selectedNBAId);
-  const selectedNHL=nhlGames.find(g=>g.id===selectedNHLId);
-  const nbaSig=selectedNBA?getLiveSignalNBA(selectedNBA):{type:"SCHEDULED",label:"",edge:0,confidence:0,projection:0};
-  const nhlSig=selectedNHL?getLiveSignalNHL(selectedNHL):{type:"SCHEDULED",label:"",edge:0,confidence:0,projection:0};
-  const totalLive=nbaLive.length+nhlLive.length;
-
-  return(
-    <div style={{minHeight:"100vh",background:"#f5f5f5",color:"#111",fontFamily:"monospace"}}>
-      <div style={{borderBottom:"1px solid #e0e0e0",padding:"14px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",background:"#fff",position:"sticky",top:0,zIndex:100,boxShadow:"0 1px 8px #00000010"}}>
-        <span style={{background:"linear-gradient(135deg,#7c3aed,#00aa55)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontSize:15,fontWeight:900,letterSpacing:2}}>NBA × NHL SIGNALS</span>
-        <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          {lastUpdate&&<span style={{color:"#aaa",fontSize:8}}>↻ {lastUpdate}</span>}
-          {totalLive>0&&<span style={{background:"#cc000015",border:"1px solid #cc000030",borderRadius:4,padding:"3px 9px",color:"#cc0000",fontSize:9,fontWeight:700}}>● {totalLive} LIVE</span>}
-        </div>
-      </div>
-
-      <div style={{padding:"10px 12px 0",display:"flex",gap:8}}>
-        <button onClick={()=>setTab("nba")} style={{flex:1,padding:"9px 0",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"monospace",fontSize:12,fontWeight:900,background:tab==="nba"?"linear-gradient(135deg,#7c3aed,#5b21b6)":"#fff",color:tab==="nba"?"#fff":"#888",boxShadow:tab==="nba"?"0 2px 12px #7c3aed30":"0 1px 4px #00000010"}}>
-          🏀 NBA{nbaLive.length>0?` ● ${nbaLive.length}`:""}
-        </button>
-        <button onClick={()=>setTab("nhl")} style={{flex:1,padding:"9px 0",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"monospace",fontSize:12,fontWeight:900,background:tab==="nhl"?"linear-gradient(135deg,#0066cc,#003399)":"#fff",color:tab==="nhl"?"#fff":"#888",boxShadow:tab==="nhl"?"0 2px 12px #0066cc30":"0 1px 4px #00000010"}}>
-          🏒 NHL{nhlLive.length>0?` ● ${nhlLive.length}`:""}
-        </button>
-      </div>
-
-      {status==="loading"&&(
-        <div style={{display:"flex",justifyContent:"center",alignItems:"center",height:"60vh",flexDirection:"column",gap:14}}>
-          <div style={{color:"#aaa",fontSize:11,letterSpacing:2}}>Chargement...</div>
-          <div style={{display:"flex",gap:6}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:"#7c3aed",opacity:0.3+i*0.3}}/>)}</div>
-        </div>
-      )}
-
-      {status==="error"&&(
-        <div style={{margin:20,background:"#fff5f5",border:"1px solid #cc000030",borderRadius:12,padding:"18px 22px"}}>
-          <div style={{color:"#cc0000",fontSize:12,marginBottom:8,fontWeight:700}}>⚠️ Impossible de charger les données</div>
-          <button onClick={()=>{setStatus("loading");loadData();}} style={{background:"#7c3aed15",border:"1px solid #7c3aed30",borderRadius:6,color:"#7c3aed",fontFamily:"monospace",fontSize:11,padding:"6px 14px",cursor:"pointer",fontWeight:700}}>Réessayer</button>
-        </div>
-      )}
-
-      {status==="ok"&&(
-        <div style={{padding:12,display:"flex",flexDirection:"column",gap:8}}>
-          {tab==="nba"&&(<>
-            {nbaLive.length>0&&(<>
-              <div style={{color:"#cc0000",fontSize:8,letterSpacing:3,paddingLeft:3,fontWeight:700}}>● MATCHS EN DIRECT NBA</div>
-              {nbaLive.map(g=><NBALiveCard key={g.id} game={g} selected={selectedNBAId===g.id} onSelect={setSelectedNBAId}/>)}
-            </>)}
-            {selectedNBA&&selectedNBA.isLive&&selectedNBA.total&&(
-              <div style={{background:"#fff",border:`1px solid ${BORDERCOLORS[nbaSig.type]}`,borderRadius:15,padding:"16px 18px",boxShadow:"0 1px 8px #00000010"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                  <div>
-                    <div style={{color:"#aaa",fontSize:9,letterSpacing:2,marginBottom:4}}>SIGNAL LIVE NBA</div>
-                    <div style={{color:COLORS[nbaSig.type],fontSize:22,fontWeight:900}}>{nbaSig.label}</div>
-                    <div style={{color:"#555",fontSize:10,marginTop:2,fontWeight:700}}>{selectedNBA.awayFull} @ {selectedNBA.homeFull}</div>
-                  </div>
-                  <Ring value={nbaSig.confidence} color={COLORS[nbaSig.type]} size={62}/>
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:10}}>
-                  {[{label:"PROJETÉ",val:nbaSig.projection,color:COLORS[nbaSig.type]},{label:"LINE",val:selectedNBA.total,color:"#555"},{label:"EDGE",val:`${nbaSig.edge>0?"+":""}${nbaSig.edge}`,color:nbaSig.edge>3?"#007733":nbaSig.edge<-3?"#cc3300":"#888"}].map((m,i)=>(
-                    <div key={i} style={{background:"#f4f4f4",border:"1px solid #e0e0e0",borderRadius:10,padding:"12px"}}>
-                      <div style={{color:"#aaa",fontSize:8,marginBottom:3}}>{m.label}</div>
-                      <div style={{color:m.color,fontSize:20,fontWeight:900}}>{m.val}</div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{background:"#f4f4f4",borderRadius:10,padding:"14px"}}>
-                  <div style={{color:"#7c3aed",fontSize:12,fontWeight:800,marginBottom:8}}>
-                    {nbaSig.type==="STRONG_OVER"&&"→ BET OVER — forte conviction"}
-                    {nbaSig.type==="OVER"&&"→ OVER possible — conviction moyenne"}
-                    {nbaSig.type==="STRONG_UNDER"&&"→ BET UNDER — forte conviction"}
-                    {nbaSig.type==="UNDER"&&"→ UNDER possible — surveiller"}
-                    {nbaSig.type==="NEUTRAL"&&"→ Pas d'edge clair — attendre"}
-                  </div>
-                  <a href="https://polymarket.com/sports/basketball/nba" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,background:"linear-gradient(135deg,#7c3aed,#5b21b6)",color:"#fff",textDecoration:"none",borderRadius:7,padding:"8px 14px",fontSize:11,fontWeight:700}}>🔗 OUVRIR POLYMARKET</a>
-                </div>
-              </div>
-            )}
-            {nbaScheduled.length>0&&(<>
-              <div style={{color:"#555",fontSize:8,letterSpacing:3,paddingLeft:3,fontWeight:700,marginTop:4}}>📊 PRÉDICTIONS PRÉ-MATCH NBA</div>
-              {nbaScheduled.map(g=><NBAPreMatchCard key={g.id} game={g} teamStats={teamStats}/>)}
-            </>)}
-            {nbaGames.length===0&&<div style={{textAlign:"center",color:"#aaa",padding:40,fontSize:12}}>Aucun match NBA aujourd'hui</div>}
-          </>)}
-
-          {tab==="nhl"&&(<>
-            {nhlLive.length>0&&(<>
-              <div style={{color:"#cc0000",fontSize:8,letterSpacing:3,paddingLeft:3,fontWeight:700}}>● MATCHS EN DIRECT NHL</div>
-              {nhlLive.map(g=><NHLLiveCard key={g.id} game={g} selected={selectedNHLId===g.id} onSelect={setSelectedNHLId}/>)}
-            </>)}
-            {selectedNHL&&selectedNHL.isLive&&selectedNHL.total&&(
-              <div style={{background:"#fff",border:`1px solid ${BORDERCOLORS[nhlSig.type]}`,borderRadius:15,padding:"16px 18px",boxShadow:"0 1px 8px #00000010"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                  <div>
-                    <div style={{color:"#aaa",fontSize:9,letterSpacing:2,marginBottom:4}}>SIGNAL LIVE NHL</div>
-                    <div style={{color:COLORS[nhlSig.type],fontSize:22,fontWeight:900}}>{nhlSig.label}</div>
-                    <div style={{color:"#555",fontSize:10,marginTop:2,fontWeight:700}}>{selectedNHL.awayFull} @ {selectedNHL.homeFull}</div>
-                  </div>
-                  <Ring value={nhlSig.confidence} color={COLORS[nhlSig.type]} size={62}/>
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:10}}>
-                  {[{label:"PROJETÉ",val:nhlSig.projection,color:COLORS[nhlSig.type]},{label:"LINE",val:selectedNHL.total,color:"#555"},{label:"EDGE",val:`${nhlSig.edge>0?"+":""}${nhlSig.edge}`,color:nhlSig.edge>0.5?"#007733":nhlSig.edge<-0.5?"#cc3300":"#888"}].map((m,i)=>(
-                    <div key={i} style={{background:"#f4f4f4",border:"1px solid #e0e0e0",borderRadius:10,padding:"12px"}}>
-                      <div style={{color:"#aaa",fontSize:8,marginBottom:3}}>{m.label}</div>
-                      <div style={{color:m.color,fontSize:20,fontWeight:900}}>{m.val}</div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{background:"#f4f4f4",borderRadius:10,padding:"14px"}}>
-                  <div style={{color:"#0066cc",fontSize:12,fontWeight:800,marginBottom:8}}>
-                    {nhlSig.type==="STRONG_OVER"&&"→ BET OVER — forte conviction"}
-                    {nhlSig.type==="OVER"&&"→ OVER possible — conviction moyenne"}
-                    {nhlSig.type==="STRONG_UNDER"&&"→ BET UNDER — forte conviction"}
-                    {nhlSig.type==="UNDER"&&"→ UNDER possible — surveiller"}
-                    {nhlSig.type==="NEUTRAL"&&"→ Pas d'edge clair — attendre"}
-                  </div>
-                  <a href="https://www.betway.com/sports/hockey" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,background:"linear-gradient(135deg,#0066cc,#003399)",color:"#fff",textDecoration:"none",borderRadius:7,padding:"8px 14px",fontSize:11,fontWeight:700}}>🔗 OUVRIR SPORTSBOOK</a>
-                </div>
-              </div>
-            )}
-            {nhlScheduled.length>0&&(<>
-              <div style={{color:"#555",fontSize:8,letterSpacing:3,paddingLeft:3,fontWeight:700,marginTop:4}}>📊 PRÉDICTIONS PRÉ-MATCH NHL</div>
-              {nhlScheduled.map(g=><NHLPreMatchCard key={g.id} game={g}/>)}
-            </>)}
-            {nhlGames.length===0&&<div style={{textAlign:"center",color:"#aaa",padding:40,fontSize:12}}>Aucun match NHL aujourd'hui</div>}
-          </>)}
-        </div>
-      )}
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
     </div>
   );
 }
