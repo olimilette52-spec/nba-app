@@ -56,34 +56,36 @@ function getNBAAdvancedMatch(game){
   if(!h||!a)return null;
 
   const avgPace=(h.pace+a.pace)/2;
-  const LEAGUE_AVG_PTS=114.2;
 
-  // Score prédit basé sur OffRtg/DefRtg
-let homeExp=(h.offRtg/100)*(avgPace/2);
-let awayExp=(a.offRtg/100)*(avgPace/2);
+  // Calcul correct — OffRtg = points par 100 possessions
+  // possessions par équipe = pace/2, score = offRtg * (pace/2) / 100
+  let homeExp=h.offRtg*(avgPace/2)/100;
+  let awayExp=a.offRtg*(avgPace/2)/100;
 
+  // Ajustement défensif adversaire
+  const LEAGUE_DEF=114.0;
+  homeExp*=(LEAGUE_DEF/a.defRtg);
+  awayExp*=(LEAGUE_DEF/h.defRtg);
 
   // Ajustement eFG%
-  homeExp*=(h.eFG/53.5)*0.15+0.85;
-  awayExp*=(a.eFG/53.5)*0.15+0.85;
+  homeExp*=(1+(h.eFG-53.5)*0.004);
+  awayExp*=(1+(a.eFG-53.5)*0.004);
 
   // Ajustement TOV%
-  homeExp*=(1-(h.tovPct-13)*0.008);
-  awayExp*=(1-(a.tovPct-13)*0.008);
+  homeExp*=(1-(h.tovPct-13)*0.006);
+  awayExp*=(1-(a.tovPct-13)*0.006);
 
   // Ajustement OREB%
-  homeExp*=(1+(h.orebPct-25)*0.004);
-  awayExp*=(1+(a.orebPct-25)*0.004);
+  homeExp*=(1+(h.orebPct-25)*0.003);
+  awayExp*=(1+(a.orebPct-25)*0.003);
 
-  // Ajustement TS%
-  homeExp*=(h.ts/57.5)*0.10+0.90;
-  awayExp*=(a.ts/57.5)*0.10+0.90;
-
-  // Last 10
+  // Last 10 — forme récente
   const hRecent=h.last10.reduce((a,b)=>a+b,0)/h.last10.length;
   const aRecent=a.last10.reduce((a,b)=>a+b,0)/a.last10.length;
-  homeExp=homeExp*0.75+hRecent*1.2*0.25;
-  awayExp=awayExp*0.75+aRecent*1.2*0.25;
+  const hRecentFactor=0.85+(hRecent/10)*0.30;
+  const aRecentFactor=0.85+(aRecent/10)*0.30;
+  homeExp=homeExp*0.80+homeExp*hRecentFactor*0.20;
+  awayExp=awayExp*0.80+awayExp*aRecentFactor*0.20;
 
   // Avantage domicile
   homeExp+=2.4;
@@ -114,7 +116,7 @@ let awayExp=(a.offRtg/100)*(avgPace/2);
     const absEdge=Math.abs(edge);
     let type,label;
     if(edge>8){type="STRONG_OVER";label="STRONG OVER";}
-    else if(edge>3){type="OVER";label:"OVER";}
+    else if(edge>3){type="OVER";label="OVER";}
     else if(edge<-8){type="STRONG_UNDER";label="STRONG UNDER";}
     else if(edge<-3){type="UNDER";label="UNDER";}
     else{type="NEUTRAL";label="NEUTRE";}
@@ -300,7 +302,6 @@ export default function App(){
                           </div>
                         </div>
                       </div>
-
                       <div style={{background:"#f4f4f4",borderRadius:10,padding:"11px 12px",marginBottom:8}}>
                         <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:8,fontWeight:700}}>SCORE PRÉDIT / VICTOIRE</div>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
@@ -331,7 +332,6 @@ export default function App(){
                           </div>
                         </div>
                       </div>
-
                       <div style={{background:"#f4f4f4",borderRadius:10,padding:"10px 12px",marginBottom:8}}>
                         <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:8,fontWeight:700}}>STATS AVANCÉES</div>
                         <div style={{display:"flex",justifyContent:"space-between",gap:4}}>
@@ -351,7 +351,6 @@ export default function App(){
                           ))}
                         </div>
                       </div>
-
                       <div style={{display:"flex",gap:8}}>
                         {pm.spreadCover&&<div style={{flex:1,background:"#00aa5510",border:"1px solid #00aa5525",borderRadius:8,padding:"6px 8px",textAlign:"center"}}>
                           <div style={{color:"#aaa",fontSize:7,marginBottom:2}}>SPREAD PICK</div>
