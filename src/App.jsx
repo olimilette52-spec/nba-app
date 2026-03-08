@@ -59,8 +59,8 @@ function getNBAAdvancedMatch(game){
   const LEAGUE_AVG_PTS=114.2;
 
   // Score prédit basé sur OffRtg/DefRtg
-  let homeExp=(h.offRtg+a.defRtg)/2*(avgPace/98.5)/100*LEAGUE_AVG_PTS/100*48;
-  let awayExp=(a.offRtg+h.defRtg)/2*(avgPace/98.5)/100*LEAGUE_AVG_PTS/100*48;
+let homeExp=(h.offRtg+a.defRtg)/2*(avgPace/98.5)*0.48;
+let awayExp=(a.offRtg+h.defRtg)/2*(avgPace/98.5)*0.48;
 
   // Ajustement eFG%
   homeExp*=(h.eFG/53.5)*0.15+0.85;
