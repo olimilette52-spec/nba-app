@@ -125,7 +125,7 @@ function remaining(q,tl){return Math.max(0,TOTAL_MIN-played(q,tl));}
 function qMult(q,tl){const r=pt(tl);if(q===4&&r<2)return 0.65;if(q===4&&r<4)return 0.78;if(q===4)return 0.90;return 1.0;}
 
 function getLiveSignalNBA(game){
-  if(!game.isLive||!game.total||(!game.homeScore&&!game.awayScore))return{type:"SCHEDULED",label:"À VENIR",edge:0,confidence:0,projection:0};
+  if(!game.isLive||!game.total||(!game.homeScore&&!game.awayScore))return{type:"SCHEDULED",label:"A VENIR",edge:0,confidence:0,projection:0};
   const scored=game.homeScore+game.awayScore;
   const p=played(game.quarter,game.timeLeft);
   const r=remaining(game.quarter,game.timeLeft);
@@ -186,7 +186,7 @@ function Ring({value,color,size=56}){
     <svg width={size} height={size} style={{transform:"rotate(-90deg)",flexShrink:0}}>
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#e8e8e8" strokeWidth={5}/>
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={5} strokeDasharray={circ} strokeDashoffset={circ*(1-Math.max(0,value)/100)} strokeLinecap="round" style={{transition:"stroke-dashoffset 0.7s"}}/>
-      <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="central" fill={color} fontSize={size<60?11:13} fontWeight={900} fontFamily="monospace" style={{transform:"rotate(90deg)",transformOrigin:`${size/2}px ${size/2}px`}}>{value>0?`${value}%`:"—"}</text>
+      <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="central" fill={color} fontSize={size<60?11:13} fontWeight={900} fontFamily="monospace" style={{transform:"rotate(90deg)",transformOrigin:`${size/2}px ${size/2}px`}}>{value>0?`${value}%`:"--"}</text>
     </svg>
   );
 }
@@ -194,11 +194,11 @@ function Ring({value,color,size=56}){
 function NBALogo({name,size=32}){
   const url=getNBALogo(name);
   if(!url)return <span style={{fontSize:size*0.7}}>🏀</span>;
-  return <img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display='none'}/>;
+  return <img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display="none"}/>;
 }
 
 function NHLLogo({name,size=32}){
-  return <img src={getNHLLogo(name)} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display='none'}/>;
+  return <img src={getNHLLogo(name)} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display="none"}/>;
 }
 export default function App(){
   const[tab,setTab]=useState("nba");
@@ -265,7 +265,7 @@ export default function App(){
             {liveNBA.length>0&&(
               <>
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-                  <div style={{width:7,height:7,borderRadius:"50%",background:"#cc0000",animation:"pulse 1.2s infinite"}}/>
+                  <div style={{width:7,height:7,borderRadius:"50%",background:"#cc0000"}}/>
                   <span style={{color:"#cc0000",fontSize:10,letterSpacing:2,fontWeight:700}}>MATCHS EN DIRECT NBA</span>
                 </div>
                 {liveNBA.map((g,i)=>{
@@ -396,7 +396,7 @@ export default function App(){
             {liveNHL.length>0&&(
               <>
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-                  <div style={{width:7,height:7,borderRadius:"50%",background:"#cc0000",animation:"pulse 1.2s infinite"}}/>
+                  <div style={{width:7,height:7,borderRadius:"50%",background:"#cc0000"}}/>
                   <span style={{color:"#cc0000",fontSize:10,letterSpacing:2,fontWeight:700}}>MATCHS EN DIRECT NHL</span>
                 </div>
                 {liveNHL.map((g,i)=>{
@@ -551,7 +551,6 @@ export default function App(){
           </>
         )}
       </div>
-
     </div>
   );
 }
