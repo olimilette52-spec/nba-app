@@ -232,10 +232,11 @@ export default function App(){
 
   useEffect(()=>{fetchAll();const t=setInterval(fetchAll,30000);return()=>clearInterval(t);},[]);
 
+  const today=new Date().toLocaleDateString("en-CA",{timeZone:"America/Toronto"});
   const liveNBA=nbaGames.filter(g=>g.isLive);
-  const upcomingNBA=nbaGames.filter(g=>!g.isLive&&!g.isFinished);
+  const upcomingNBA=nbaGames.filter(g=>!g.isLive&&!g.isFinished&&g.time&&g.time.startsWith(today));
   const liveNHL=nhlGames.filter(g=>g.isLive);
-  const upcomingNHL=nhlGames.filter(g=>!g.isLive&&!g.isFinished);
+  const upcomingNHL=nhlGames.filter(g=>!g.isLive&&!g.isFinished&&g.time&&g.time.startsWith(today));
   const timeStr=now.toLocaleTimeString("fr-CA",{hour:"2-digit",minute:"2-digit",second:"2-digit",timeZone:"America/Toronto"});
 
   return(
