@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 
 const PROXY = "https://nba-proxy-v1bi.onrender.com";
 
-
 const NBA_TEAM_IDS = {
   Hawks:1610612737,Celtics:1610612738,Nets:1610612751,Hornets:1610612766,
   Bulls:1610612741,Cavaliers:1610612739,Mavericks:1610612742,Nuggets:1610612743,
@@ -126,11 +125,11 @@ function remaining(q,tl){return Math.max(0,TOTAL_MIN-played(q,tl));}
 function qMult(q,tl){const r=pt(tl);if(q===4&&r<2)return 0.65;if(q===4&&r<4)return 0.78;if(q===4)return 0.90;return 1.0;}
 
 function getLiveSignalNBA(game){
-  if(!game.isLive||!game.total||(!game.homeScore&&!game.awayScore))return{type:"SCHEDULED",label:"🕐 À VENIR",edge:0,confidence:0,projection:0};
+  if(!game.isLive||!game.total||(!game.homeScore&&!game.awayScore))return{type:"SCHEDULED",label:"À VENIR",edge:0,confidence:0,projection:0};
   const scored=game.homeScore+game.awayScore;
   const p=played(game.quarter,game.timeLeft);
   const r=remaining(game.quarter,game.timeLeft);
-  if(p<0.5)return{type:"NEUTRAL",label:"⚖️ NEUTRE",edge:0,confidence:0,projection:scored};
+  if(p<0.5)return{type:"NEUTRAL",label:"NEUTRE",edge:0,confidence:0,projection:scored};
   const pace=scored/p;
   const avgPace=game.total/TOTAL_MIN;
   const rw=Math.min(0.96,0.50+(p/TOTAL_MIN)*0.48);
@@ -139,11 +138,11 @@ function getLiveSignalNBA(game){
   const edge=+(proj-game.total).toFixed(1);
   const conf=Math.min(100,Math.round(Math.min(35,(p/TOTAL_MIN)*35)+Math.min(28,Math.abs(edge)*1.6)+20));
   let type,label;
-  if(edge>12&&conf>=55){type="STRONG_OVER";label="🔥 STRONG OVER";}
-  else if(edge>5&&conf>=40){type="OVER";label="📈 OVER";}
-  else if(edge<-12&&conf>=55){type="STRONG_UNDER";label="❄️ STRONG UNDER";}
-  else if(edge<-5&&conf>=40){type="UNDER";label="📉 UNDER";}
-  else{type="NEUTRAL";label:"⚖️ NEUTRE";}
+  if(edge>12&&conf>=55){type="STRONG_OVER";label="STRONG OVER";}
+  else if(edge>5&&conf>=40){type="OVER";label="OVER";}
+  else if(edge<-12&&conf>=55){type="STRONG_UNDER";label="STRONG UNDER";}
+  else if(edge<-5&&conf>=40){type="UNDER";label="UNDER";}
+  else{type="NEUTRAL";label="NEUTRE";}
   return{type,label,edge,confidence:conf,projection:proj};
 }
 
@@ -194,11 +193,12 @@ function Ring({value,color,size=56}){
 
 function NBALogo({name,size=32}){
   const url=getNBALogo(name);
-  if(!url)return<span style={{fontSize:size*0.7}}>🏀</span>;
-  return<img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display='none'}/>;
+  if(!url)return <span style={{fontSize:size*0.7}}>🏀</span>;
+  return <img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display='none'}/>;
 }
+
 function NHLLogo({name,size=32}){
-  return<img src={getNHLLogo(name)} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display='none'}/>;
+  return <img src={getNHLLogo(name)} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display='none'}/>;
 }
 export default function App(){
   const[tab,setTab]=useState("nba");
@@ -244,7 +244,7 @@ export default function App(){
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
           <div style={{fontSize:15,fontWeight:900,letterSpacing:2}}>
             <span style={{color:"#e87722"}}>NBA</span>
-            <span style={{color:"#ccc"}}> × </span>
+            <span style={{color:"#ccc"}}> x </span>
             <span style={{color:"#0066cc"}}>NHL</span>
             <span style={{color:"#333"}}> SIGNALS</span>
           </div>
@@ -289,7 +289,7 @@ export default function App(){
                           <span style={{color:"#111",fontWeight:800,fontSize:14}}>{g.away}</span>
                         </div>
                         <div style={{textAlign:"center"}}>
-                          <div style={{color:"#111",fontSize:26,fontWeight:900,letterSpacing:2}}>{g.awayScore} – {g.homeScore}</div>
+                          <div style={{color:"#111",fontSize:26,fontWeight:900,letterSpacing:2}}>{g.awayScore} - {g.homeScore}</div>
                         </div>
                         <div style={{display:"flex",alignItems:"center",gap:8}}>
                           <span style={{color:"#111",fontWeight:800,fontSize:14}}>{g.home}</span>
@@ -315,7 +315,7 @@ export default function App(){
               <>
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8,marginTop:liveNBA.length>0?12:0}}>
                   <span style={{fontSize:10}}>📊</span>
-                  <span style={{color:"#e87722",fontSize:10,letterSpacing:2,fontWeight:700}}>PRÉDICTIONS PRÉ-MATCH NBA</span>
+                  <span style={{color:"#e87722",fontSize:10,letterSpacing:2,fontWeight:700}}>PREDICTIONS PRE-MATCH NBA</span>
                 </div>
                 {upcomingNBA.map((g,i)=>{
                   const pm=getNBAPreMatch(g,teamStats);
@@ -328,7 +328,7 @@ export default function App(){
                           <NBALogo name={g.awayFull||g.away} size={34}/>
                           <div>
                             <span style={{color:"#111",fontWeight:800,fontSize:14}}>{g.away}</span>
-                            {pm.awayB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>😴 B2B</div>}
+                            {pm.awayB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>B2B</div>}
                           </div>
                         </div>
                         <div style={{textAlign:"center"}}>
@@ -338,13 +338,13 @@ export default function App(){
                         <div style={{display:"flex",alignItems:"center",gap:8}}>
                           <div style={{textAlign:"right"}}>
                             <span style={{color:"#111",fontWeight:800,fontSize:14}}>{g.home}</span>
-                            {pm.homeB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>😴 B2B</div>}
+                            {pm.homeB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>B2B</div>}
                           </div>
                           <NBALogo name={g.homeFull||g.home} size={34}/>
                         </div>
                       </div>
                       <div style={{background:"#f4f4f4",borderRadius:10,padding:"11px 12px"}}>
-                        <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:8,fontWeight:700}}>SCORE PRÉDIT / CHANCE DE VICTOIRE</div>
+                        <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:8,fontWeight:700}}>SCORE PREDIT / CHANCE DE VICTOIRE</div>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                           <div>
                             <div style={{color:"#888",fontSize:9,marginBottom:2}}>{g.away}</div>
@@ -379,7 +379,7 @@ export default function App(){
                           </div>}
                           {g.total&&<div style={{flex:1,background:`${ouColor}10`,border:`1px solid ${ouColor}25`,borderRadius:8,padding:"6px 8px",textAlign:"center"}}>
                             <div style={{color:"#aaa",fontSize:7,marginBottom:2}}>TOTAL PICK</div>
-                            <div style={{color:ouColor,fontSize:12,fontWeight:900}}>{pm.proj>(g.total||0)?"O":"U"} {g.total} ⚡</div>
+                            <div style={{color:ouColor,fontSize:12,fontWeight:900}}>{pm.proj>(g.total||0)?"O":"U"} {g.total}</div>
                           </div>}
                         </div>
                       </div>
@@ -436,7 +436,7 @@ export default function App(){
                         <div style={{textAlign:"center"}}>
                           <div style={{color:"#111",fontSize:26,fontWeight:900,letterSpacing:2}}>
                             <span style={{color:awayLeading?"#007733":"#111"}}>{g.awayScore||0}</span>
-                            <span style={{color:"#ccc"}}> – </span>
+                            <span style={{color:"#ccc"}}> - </span>
                             <span style={{color:homeLeading?"#007733":"#111"}}>{g.homeScore||0}</span>
                           </div>
                         </div>
@@ -472,8 +472,8 @@ export default function App(){
                           </div>
                         </div>
                         <div style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:8,padding:"6px 10px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                          <div style={{color:"#aaa",fontSize:8}}>MODÈLE PRÉ-MATCH</div>
-                          <div style={{color:winnerColor,fontSize:10,fontWeight:800}}>{predictedWinner} {predictedPct}% prédit</div>
+                          <div style={{color:"#aaa",fontSize:8}}>MODELE PRE-MATCH</div>
+                          <div style={{color:winnerColor,fontSize:10,fontWeight:800}}>{predictedWinner} {predictedPct}% predit</div>
                         </div>
                       </div>
                     </div>
@@ -485,7 +485,7 @@ export default function App(){
               <>
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8,marginTop:liveNHL.length>0?12:0}}>
                   <span style={{fontSize:10}}>📊</span>
-                  <span style={{color:"#0066cc",fontSize:10,letterSpacing:2,fontWeight:700}}>PRÉDICTIONS NHL — GAGNANT</span>
+                  <span style={{color:"#0066cc",fontSize:10,letterSpacing:2,fontWeight:700}}>PREDICTIONS NHL - GAGNANT</span>
                 </div>
                 {upcomingNHL.map((g,i)=>{
                   const homeAbbr=getNHLAbbr(g.homeFull||g.home);
