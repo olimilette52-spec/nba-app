@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
-const PROXY = "https://nba-proxy-production.up.railway.app";
+const PROXY = "https://nba-proxy-v1bi.onrender.com";
+
 
 const NBA_TEAM_IDS = {
   Hawks:1610612737,Celtics:1610612738,Nets:1610612751,Hornets:1610612766,
