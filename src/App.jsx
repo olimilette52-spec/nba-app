@@ -13,44 +13,16 @@ const TEAM_IDS = {
   Jazz:1610612762, Wizards:1610612764
 };
 
-const HARDCODED_STATS = {
-  "Atlanta Hawks":{ppg:117.7,oppg:117.3,pace:102.1,backToBack:false},
-  "Boston Celtics":{ppg:114.5,oppg:107.0,pace:94.8,backToBack:false},
-  "Brooklyn Nets":{ppg:106.9,oppg:115.6,pace:96.6,backToBack:false},
-  "Charlotte Hornets":{ppg:116.2,oppg:112.5,pace:97.3,backToBack:false},
-  "Chicago Bulls":{ppg:115.5,oppg:119.7,pace:101.7,backToBack:false},
-  "Cleveland Cavaliers":{ppg:119.1,oppg:114.9,pace:100.2,backToBack:false},
-  "Dallas Mavericks":{ppg:113.3,oppg:117.7,pace:101.6,backToBack:false},
-  "Denver Nuggets":{ppg:120.2,oppg:116.5,pace:97.9,backToBack:false},
-  "Detroit Pistons":{ppg:116.8,oppg:109.6,pace:99.6,backToBack:false},
-  "Golden State Warriors":{ppg:115.0,oppg:113.9,pace:99.4,backToBack:false},
-  "Houston Rockets":{ppg:114.5,oppg:109.3,pace:96.0,backToBack:false},
-  "Indiana Pacers":{ppg:111.4,oppg:119.9,pace:101.0,backToBack:false},
-  "LA Clippers":{ppg:113.8,oppg:114.2,pace:98.2,backToBack:false},
-  "Los Angeles Lakers":{ppg:116.4,oppg:114.8,pace:99.8,backToBack:false},
-  "Memphis Grizzlies":{ppg:117.2,oppg:118.4,pace:101.4,backToBack:false},
-  "Miami Heat":{ppg:109.8,oppg:112.4,pace:96.4,backToBack:false},
-  "Milwaukee Bucks":{ppg:118.6,oppg:116.2,pace:101.2,backToBack:false},
-  "Minnesota Timberwolves":{ppg:112.8,oppg:108.6,pace:97.4,backToBack:false},
-  "New Orleans Pelicans":{ppg:109.2,oppg:118.6,pace:98.6,backToBack:false},
-  "New York Knicks":{ppg:119.8,oppg:112.4,pace:97.2,backToBack:false},
-  "Oklahoma City Thunder":{ppg:119.4,oppg:106.8,pace:99.6,backToBack:false},
-  "Orlando Magic":{ppg:108.4,oppg:106.2,pace:95.8,backToBack:false},
-  "Philadelphia 76ers":{ppg:107.8,oppg:114.6,pace:97.6,backToBack:false},
-  "Phoenix Suns":{ppg:112.6,oppg:116.8,pace:99.2,backToBack:false},
-  "Portland Trail Blazers":{ppg:108.2,oppg:119.6,pace:100.4,backToBack:false},
-  "Sacramento Kings":{ppg:117.4,oppg:116.2,pace:102.8,backToBack:false},
-  "San Antonio Spurs":{ppg:110.4,oppg:120.6,pace:100.2,backToBack:false},
-  "Toronto Raptors":{ppg:109.6,oppg:118.2,pace:98.4,backToBack:false},
-  "Utah Jazz":{ppg:107.8,oppg:121.4,pace:100.6,backToBack:false},
-  "Washington Wizards":{ppg:105.8,oppg:122.6,pace:99.8,backToBack:false}
-};
-
 function getLogoUrl(teamName){
-  if(!teamName) return null;
   const fullName=Object.keys(TEAM_IDS).find(k=>teamName.includes(k));
   const id=fullName?TEAM_IDS[fullName]:null;
   return id?`https://cdn.nba.com/logos/nba/${id}/global/L/logo.svg`:null;
+}
+
+function toQcTime(isoDate){
+  if(!isoDate) return "";
+  const d = new Date(isoDate);
+  return d.toLocaleTimeString("fr-CA",{hour:"2-digit",minute:"2-digit",timeZone:"America/Toronto"});
 }
 
 const Q=12,TOTAL_MIN=48;
@@ -61,26 +33,59 @@ function qMult(q,tl){const r=pt(tl);if(q===4&&r<2)return 0.65;if(q===4&&r<4)retu
 
 function getPreMatchPrediction(game, teamStats){
   if(!teamStats) return null;
-  const hKey=Object.keys(teamStats).find(k=>game.homeFull&&(game.homeFull.includes(k)||game.home===k));
-  const aKey=Object.keys(teamStats).find(k=>game.awayFull&&(game.awayFull.includes(k)||game.away===k));
+  const hKey=Object.keys(teamStats).find(k=>game.homeFull.includes(k)||k===game.home);
+  const aKey=Object.keys(teamStats).find(k=>game.awayFull.includes(k)||k===game.away);
   const hStats=hKey?teamStats[hKey]:null;
   const aStats=aKey?teamStats[aKey]:null;
   if(!hStats?.ppg||!aStats?.ppg) return null;
-  const homeExp=(hStats.ppg+aStats.oppg)/2+1.6;
-  const awayExp=(aStats.ppg+hStats.oppg)/2;
-  let proj=homeExp+awayExp;
-  proj+=(((hStats.pace+aStats.pace)/2)-98.5)*0.8;
-  if(hStats.backToBack) proj-=3.5;
-  if(aStats.backToBack) proj-=3.5;
-  const ratio=homeExp/(homeExp+awayExp);
-  const homeProjScore=Math.round(proj*ratio);
-  const awayProjScore=Math.round(proj-homeProjScore);
-  const winner=homeProjScore>=awayProjScore?game.home:game.away;
+
+  const homeExpected = (hStats.ppg + aStats.oppg) / 2 + 1.6;
+  const awayExpected = (aStats.ppg + hStats.oppg) / 2;
+  let proj = homeExpected + awayExpected;
+
+  if(hStats.pace && aStats.pace){
+    const avgPace = (hStats.pace + aStats.pace) / 2;
+    const leaguePace = 98.5;
+    proj += (avgPace - leaguePace) * 0.8;
+  }
+
+  if(hStats.recentPts && aStats.recentPts){
+    const recentAvg = (hStats.recentPts + aStats.recentPts) / 2;
+    proj = proj * 0.65 + recentAvg * 0.35;
+  }
+
+  if(hStats.backToBack) proj -= 3.5;
+  if(aStats.backToBack) proj -= 3.5;
+
+  const ratio = homeExpected / (homeExpected + awayExpected);
+  const homeProjScore = Math.round(proj * ratio);
+  const awayProjScore = Math.round(proj - homeProjScore);
+  const projDiff = homeProjScore - awayProjScore;
+
+  let spreadCover = null;
+  if(game.spread !== null && game.spreadTeam){
+    const favoriteIsHome = game.home === game.spreadTeam || game.homeFull.includes(game.spreadTeam);
+    if(favoriteIsHome){
+      const covers = projDiff >= Math.abs(game.spread);
+      spreadCover = covers ? {team: game.home, covers: true} : {team: game.away, covers: true, isUnderdog: true};
+    } else {
+      const awayDiff = awayProjScore - homeProjScore;
+      const covers = awayDiff >= Math.abs(game.spread);
+      spreadCover = covers ? {team: game.away, covers: true} : {team: game.home, covers: true, isUnderdog: true};
+    }
+  }
+
+  const winner = homeProjScore >= awayProjScore ? game.home : game.away;
+
   return{
-    proj:+proj.toFixed(1),
-    homePpg:hStats.ppg,awayPpg:aStats.ppg,
-    homeOppg:hStats.oppg,awayOppg:aStats.oppg,
-    homeProjScore,awayProjScore,winner
+    proj: +proj.toFixed(1),
+    homeProjScore, awayProjScore,
+    homePpg: hStats.ppg, awayPpg: aStats.ppg,
+    homeOppg: hStats.oppg, awayOppg: aStats.oppg,
+    homeB2B: hStats.backToBack, awayB2B: aStats.backToBack,
+    recentUsed: !!(hStats.recentPts && aStats.recentPts),
+    paceUsed: !!(hStats.pace && aStats.pace),
+    projDiff, spreadCover, winner,
   };
 }
 
@@ -126,53 +131,69 @@ function Ring({value,color,size=56}){
 function TeamLogo({name,size=32}){
   const url=getLogoUrl(name);
   if(!url)return<span style={{fontSize:size*0.7}}>🏀</span>;
-  return<img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display="none"}/>;
+  return<img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display='none'}/>;
 }
 
-function PreMatchCard({game,teamStats}){
-  const pred=getPreMatchPrediction(game,teamStats);
+function PreMatchCard({game, teamStats}){
+  const pred = getPreMatchPrediction(game, teamStats);
+  const favoriteIsHome = game.spreadTeam && (game.home === game.spreadTeam || game.homeFull.includes(game.spreadTeam));
+  const homeSpread = game.spread ? (favoriteIsHome ? -Math.abs(game.spread) : +Math.abs(game.spread)) : null;
+  const awaySpread = game.spread ? (favoriteIsHome ? +Math.abs(game.spread) : -Math.abs(game.spread)) : null;
+
   return(
     <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:13,padding:"15px 17px",boxShadow:"0 1px 6px #00000008"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <TeamLogo name={game.awayFull} size={36}/>
-          <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span>
+          <div>
+            <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span>
+            {pred?.awayB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>B2B</div>}
+          </div>
         </div>
         <div style={{textAlign:"center"}}>
           <div style={{color:"#111",fontSize:18,fontWeight:900}}>VS</div>
-          <div style={{color:"#888",fontSize:10,fontWeight:700,fontFamily:"monospace"}}>{game.time?.slice(11,16)} ET</div>
+          <div style={{color:"#888",fontSize:10,fontWeight:700,fontFamily:"monospace"}}>{toQcTime(game.time)} HE</div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span>
+          <div style={{textAlign:"right"}}>
+            <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span>
+            {pred?.homeB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>B2B</div>}
+          </div>
           <TeamLogo name={game.homeFull} size={36}/>
         </div>
       </div>
       <div style={{background:"#f4f4f4",borderRadius:10,padding:"10px 12px"}}>
-        {pred?(
+        {pred ? (
           <>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:8}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
               <div style={{textAlign:"center"}}>
                 <div style={{color:"#777",fontSize:8,fontFamily:"monospace"}}>MOY {game.away}</div>
                 <div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.awayPpg}</div>
+                {pred.awayOppg&&<div style={{color:"#aaa",fontSize:8}}>DEF {pred.awayOppg}</div>}
               </div>
               <div style={{textAlign:"center"}}>
                 <div style={{color:"#777",fontSize:8,fontFamily:"monospace"}}>PROJECTION</div>
                 <div style={{color:"#7c3aed",fontSize:20,fontWeight:900}}>{pred.proj}</div>
+                <div style={{color:"#bbb",fontSize:7}}>
+                  {pred.paceUsed&&"pace "}
+                  {pred.recentUsed&&"forme"}
+                </div>
               </div>
               <div style={{textAlign:"center"}}>
                 <div style={{color:"#777",fontSize:8,fontFamily:"monospace"}}>MOY {game.home}</div>
                 <div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.homePpg}</div>
+                {pred.homeOppg&&<div style={{color:"#aaa",fontSize:8}}>DEF {pred.homeOppg}</div>}
               </div>
             </div>
             <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:8,padding:"8px 12px",marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
-                <div style={{color:"#777",fontSize:8,marginBottom:4}}>SCORE PREVU</div>
+                <div style={{color:"#777",fontSize:8,marginBottom:4,fontFamily:"monospace"}}>SCORE PREVU</div>
                 <div style={{display:"flex",alignItems:"center",gap:10}}>
                   <div style={{textAlign:"center"}}>
                     <div style={{color:"#888",fontSize:8}}>{game.away}</div>
                     <div style={{color:pred.awayProjScore>pred.homeProjScore?"#007733":"#cc3300",fontSize:24,fontWeight:900,lineHeight:1}}>{pred.awayProjScore}</div>
                   </div>
-                  <div style={{color:"#ccc",fontSize:16}}>-</div>
+                  <div style={{color:"#ccc",fontSize:16,fontWeight:700}}>-</div>
                   <div style={{textAlign:"center"}}>
                     <div style={{color:"#888",fontSize:8}}>{game.home}</div>
                     <div style={{color:pred.homeProjScore>pred.awayProjScore?"#007733":"#cc3300",fontSize:24,fontWeight:900,lineHeight:1}}>{pred.homeProjScore}</div>
@@ -183,19 +204,30 @@ function PreMatchCard({game,teamStats}){
                 {pred.winner} GAGNE
               </div>
             </div>
-            {game.total?(
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{fontSize:10,color:"#555",fontWeight:700,fontFamily:"monospace"}}>LINE: {game.total}</div>
+            {game.total&&(
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <div style={{fontSize:10,color:"#555",fontWeight:700,fontFamily:"monospace"}}>TOTAL: {game.total}</div>
                 <div style={{background:pred.proj>game.total?"#00aa5515":"#ff330015",border:`1px solid ${pred.proj>game.total?"#00aa5530":"#ff330025"}`,borderRadius:6,padding:"3px 8px",color:pred.proj>game.total?"#007733":"#cc3300",fontSize:10,fontWeight:800,fontFamily:"monospace"}}>
                   {pred.proj>game.total?"OVER PREVU":"UNDER PREVU"}
                 </div>
               </div>
-            ):(
-              <div style={{color:"#aaa",fontSize:9,fontFamily:"monospace",textAlign:"center"}}>Line non disponible</div>
+            )}
+            {game.spread!==null&&game.spreadTeam&&homeSpread!==null&&(
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                  <div style={{background:awaySpread>0?"#00aa5515":"#ff330015",border:`1px solid ${awaySpread>0?"#00aa5530":"#ff330030"}`,borderRadius:6,padding:"3px 8px",color:awaySpread>0?"#007733":"#cc3300",fontSize:10,fontWeight:800}}>{game.away} {awaySpread>0?"+":""}{awaySpread}</div>
+                  <div style={{background:homeSpread>0?"#00aa5515":"#ff330015",border:`1px solid ${homeSpread>0?"#00aa5530":"#ff330030"}`,borderRadius:6,padding:"3px 8px",color:homeSpread>0?"#007733":"#cc3300",fontSize:10,fontWeight:800}}>{game.home} {homeSpread>0?"+":""}{homeSpread}</div>
+                </div>
+                {pred.spreadCover&&(
+                  <div style={{background:pred.spreadCover.covers?"#00aa5515":"#ff330015",border:`1px solid ${pred.spreadCover.covers?"#00aa5530":"#ff330025"}`,borderRadius:6,padding:"3px 8px",color:pred.spreadCover.covers?"#007733":"#cc3300",fontSize:10,fontWeight:800}}>
+                    {pred.spreadCover.covers?`${pred.spreadCover.team} COUVRE`:`${pred.spreadCover.team} NE COUVRE PAS`}
+                  </div>
+                )}
+              </div>
             )}
           </>
         ):(
-          <div style={{color:"#aaa",fontSize:9,fontFamily:"monospace",textAlign:"center",padding:"8px 0"}}>Stats non disponibles</div>
+          <div style={{color:"#aaa",fontSize:9,fontFamily:"monospace",textAlign:"center",padding:"8px 0"}}>Stats en chargement...</div>
         )}
       </div>
     </div>
@@ -254,21 +286,28 @@ function LiveCard({game,selected,onSelect}){
 
 export default function App(){
   const[games,setGames]=useState([]);
+  const[teamStats,setTeamStats]=useState(null);
   const[selectedId,setSelectedId]=useState(null);
   const[status,setStatus]=useState("loading");
   const[lastUpdate,setLastUpdate]=useState(null);
 
-  const loadData=async()=>{
+  const loadData = async()=>{
     try{
-      const scoresRes=await fetch(`${PROXY}/nba/scores`);
-      const scores=await scoresRes.json();
+      const scoresRes = await fetch(`${PROXY}/nba/scores`);
+      const scores = await scoresRes.json();
       if(!Array.isArray(scores)) throw new Error("bad scores");
       setGames(scores);
       if(!selectedId&&scores.length>0){
         setSelectedId((scores.find(g=>g.isLive)||scores[0]).id);
       }
-      setLastUpdate(new Date().toLocaleTimeString("fr-CA"));
+      const now = new Date().toLocaleTimeString("fr-CA",{timeZone:"America/Toronto"});
+      setLastUpdate(now);
       setStatus("ok");
+      try{
+        const statsRes = await fetch(`${PROXY}/nba/stats`);
+        const stats = await statsRes.json();
+        setTeamStats(stats);
+      }catch{}
     }catch(e){
       setStatus("error");
     }
@@ -285,13 +324,12 @@ export default function App(){
   return(
     <div style={{minHeight:"100vh",background:"#f5f5f5",color:"#111",fontFamily:"monospace"}}>
       <div style={{borderBottom:"1px solid #e0e0e0",padding:"14px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",background:"#ffffff",position:"sticky",top:0,zIndex:100,boxShadow:"0 1px 8px #00000010"}}>
-        <span style={{background:"linear-gradient(135deg,#7c3aed,#00aa55)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontSize:18,fontWeight:900,letterSpacing:2}}>NBA SIGNALS</span>
+        <span style={{background:"linear-gradient(135deg,#7c3aed,#00aa55)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontSize:16,fontWeight:900,letterSpacing:2}}>NBA BETTING SIGNALS</span>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           {lastUpdate&&<span style={{color:"#aaa",fontSize:8}}>↻ {lastUpdate}</span>}
           {liveGames.length>0&&<span style={{background:"#cc000015",border:"1px solid #cc000030",borderRadius:4,padding:"3px 9px",color:"#cc0000",fontSize:9,fontWeight:700}}>{liveGames.length} LIVE</span>}
         </div>
       </div>
-
       {status==="loading"&&(
         <div style={{display:"flex",justifyContent:"center",alignItems:"center",height:"70vh",flexDirection:"column",gap:14}}>
           <div style={{color:"#aaa",fontSize:11,letterSpacing:2}}>Chargement des matchs...</div>
@@ -300,14 +338,12 @@ export default function App(){
           </div>
         </div>
       )}
-
       {status==="error"&&(
         <div style={{margin:20,background:"#fff5f5",border:"1px solid #cc000030",borderRadius:12,padding:"18px 22px"}}>
           <div style={{color:"#cc0000",fontSize:12,marginBottom:8,fontWeight:700}}>Impossible de charger les donnees</div>
           <button onClick={()=>{setStatus("loading");loadData();}} style={{background:"#7c3aed15",border:"1px solid #7c3aed30",borderRadius:6,color:"#7c3aed",fontFamily:"monospace",fontSize:11,padding:"6px 14px",cursor:"pointer",fontWeight:700}}>Reessayer</button>
         </div>
       )}
-
       {status==="ok"&&(
         <div style={{padding:12,display:"flex",flexDirection:"column",gap:8}}>
           {liveGames.length>0&&(
@@ -353,7 +389,7 @@ export default function App(){
           {scheduledGames.length>0&&(
             <>
               <div style={{color:"#555",fontSize:8,letterSpacing:3,paddingLeft:3,fontWeight:700,marginTop:4}}>PREDICTIONS PRE-MATCH</div>
-              {scheduledGames.map(g=><PreMatchCard key={g.id} game={g} teamStats={HARDCODED_STATS}/>)}
+              {scheduledGames.map(g=><PreMatchCard key={g.id} game={g} teamStats={teamStats}/>)}
             </>
           )}
           {games.length===0&&(
