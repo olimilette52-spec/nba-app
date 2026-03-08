@@ -353,7 +353,7 @@ export default function App(){
                           <div style={{color:"#aaa",fontSize:7,marginBottom:2}}>TOTAL PICK</div>
                           <div style={{color:ouColor,fontSize:12,fontWeight:900}}>{pm.ouSignal.label} {g.total}</div>
                           <div style={{color:"#aaa",fontSize:7}}>Proj {pm.ouSignal.proj}</div>
-                        </div>}
+                          </div>}
                       </div>
                     </div>
                   );
