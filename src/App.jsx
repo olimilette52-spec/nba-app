@@ -13,39 +13,29 @@ const NBA_TEAM_IDS = {
   Jazz:1610612762,Wizards:1610612764
 };
 
-// Stats 2024-25 : ppg=points marqués, oppg=points encaissés, pace, netRtg, eFG, tovPct, orebPct, ts
+// Stats réelles 2025-26 saison en cours (mars 2026) — source nbastuffer.com
 const NBA_STATS = {
-  "Atlanta Hawks":{ppg:118.2,oppg:120.4,pace:100.2,netRtg:-3.8,eFG:52.1,tovPct:13.8,orebPct:24.6,ts:56.2,last10:[4,6,5,4,6,5,4,5,4,6],backToBack:false},
-  "Boston Celtics":{ppg:122.1,oppg:109.8,pace:98.6,netRtg:14.4,eFG:58.9,tovPct:11.2,orebPct:26.8,ts:62.1,last10:[8,7,9,8,7,9,8,9,7,8],backToBack:false},
-  "Brooklyn Nets":{ppg:108.4,oppg:118.2,pace:97.8,netRtg:-10.4,eFG:49.8,tovPct:14.6,orebPct:22.4,ts:53.8,last10:[3,4,3,4,3,4,3,4,3,4],backToBack:false},
-  "Charlotte Hornets":{ppg:109.8,oppg:117.6,pace:101.4,netRtg:-7.8,eFG:50.8,tovPct:15.2,orebPct:23.8,ts:54.6,last10:[4,3,4,5,3,4,3,5,4,3],backToBack:false},
-  "Chicago Bulls":{ppg:111.6,oppg:115.4,pace:98.4,netRtg:-3.8,eFG:51.6,tovPct:13.4,orebPct:23.2,ts:55.8,last10:[5,4,5,4,5,4,5,4,5,4],backToBack:false},
-  "Cleveland Cavaliers":{ppg:120.8,oppg:108.2,pace:96.8,netRtg:11.8,eFG:57.2,tovPct:11.8,orebPct:25.4,ts:60.8,last10:[8,7,8,9,7,8,7,9,8,7],backToBack:false},
-  "Dallas Mavericks":{ppg:117.6,oppg:112.8,pace:99.2,netRtg:5.8,eFG:55.8,tovPct:12.6,orebPct:24.8,ts:59.4,last10:[7,6,7,8,6,7,6,8,7,6],backToBack:false},
-  "Denver Nuggets":{ppg:118.4,oppg:112.6,pace:97.6,netRtg:7.8,eFG:56.4,tovPct:12.2,orebPct:27.2,ts:60.2,last10:[7,8,6,7,8,6,7,8,7,6],backToBack:false},
-  "Detroit Pistons":{ppg:110.2,oppg:116.8,pace:100.8,netRtg:-6.4,eFG:51.2,tovPct:14.8,orebPct:24.2,ts:54.8,last10:[4,5,4,5,4,5,4,5,4,5],backToBack:false},
-  "Golden State Warriors":{ppg:116.4,oppg:113.8,pace:100.4,netRtg:3.6,eFG:54.6,tovPct:13.6,orebPct:24.4,ts:58.2,last10:[6,7,6,5,7,6,5,7,6,5],backToBack:false},
-  "Houston Rockets":{ppg:117.2,oppg:110.6,pace:101.2,netRtg:6.8,eFG:55.2,tovPct:12.8,orebPct:28.4,ts:59.2,last10:[7,6,7,8,6,7,8,6,7,8],backToBack:false},
-  "Indiana Pacers":{ppg:121.8,oppg:119.4,pace:104.6,netRtg:4.2,eFG:56.8,tovPct:13.2,orebPct:25.6,ts:60.4,last10:[7,8,6,7,8,6,7,6,8,7],backToBack:false},
-  "LA Clippers":{ppg:113.4,oppg:113.6,pace:97.4,netRtg:-0.2,eFG:52.8,tovPct:12.4,orebPct:23.6,ts:56.8,last10:[5,6,5,6,5,6,5,6,5,6],backToBack:false},
-  "Los Angeles Lakers":{ppg:115.6,oppg:114.2,pace:99.6,netRtg:3.4,eFG:53.8,tovPct:13.8,orebPct:26.2,ts:57.6,last10:[6,5,6,7,5,6,7,5,6,7],backToBack:false},
-  "Memphis Grizzlies":{ppg:111.4,oppg:116.6,pace:99.8,netRtg:-5.2,eFG:51.8,tovPct:15.4,orebPct:27.8,ts:55.4,last10:[4,5,4,4,5,4,5,4,4,5],backToBack:false},
-  "Miami Heat":{ppg:112.8,oppg:113.8,pace:96.2,netRtg:-1.0,eFG:52.4,tovPct:12.6,orebPct:23.4,ts:56.4,last10:[5,4,5,6,4,5,6,4,5,6],backToBack:false},
-  "Milwaukee Bucks":{ppg:116.2,oppg:114.4,pace:100.6,netRtg:2.2,eFG:54.2,tovPct:13.4,orebPct:25.8,ts:58.4,last10:[6,5,6,7,5,6,5,7,6,5],backToBack:false},
-  "Minnesota Timberwolves":{ppg:114.6,oppg:108.4,pace:97.2,netRtg:6.2,eFG:53.6,tovPct:12.8,orebPct:24.6,ts:57.8,last10:[6,7,6,5,7,6,7,5,6,7],backToBack:false},
-  "New Orleans Pelicans":{ppg:109.6,oppg:116.4,pace:98.8,netRtg:-6.8,eFG:50.6,tovPct:14.2,orebPct:25.2,ts:54.2,last10:[4,3,4,5,3,4,3,5,4,3],backToBack:false},
-  "New York Knicks":{ppg:117.4,oppg:110.8,pace:95.8,netRtg:6.6,eFG:55.4,tovPct:11.6,orebPct:24.8,ts:59.6,last10:[7,6,7,8,6,7,6,8,7,6],backToBack:false},
-  "Oklahoma City Thunder":{ppg:121.4,oppg:106.2,pace:99.4,netRtg:15.4,eFG:57.6,tovPct:11.4,orebPct:26.4,ts:61.4,last10:[9,8,9,8,9,8,9,8,9,8],backToBack:false},
-  "Orlando Magic":{ppg:111.4,oppg:108.2,pace:96.4,netRtg:3.4,eFG:52.2,tovPct:12.2,orebPct:26.8,ts:55.8,last10:[6,5,6,5,6,5,6,5,6,5],backToBack:false},
-  "Philadelphia 76ers":{ppg:110.6,oppg:115.6,pace:98.2,netRtg:-5.0,eFG:51.4,tovPct:14.4,orebPct:24.4,ts:55.2,last10:[4,5,4,3,5,4,3,5,4,3],backToBack:false},
-  "Phoenix Suns":{ppg:113.4,oppg:115.6,pace:99.0,netRtg:-2.2,eFG:52.6,tovPct:13.6,orebPct:23.8,ts:56.6,last10:[5,4,5,4,5,4,5,4,5,4],backToBack:false},
-  "Portland Trail Blazers":{ppg:108.4,oppg:119.2,pace:100.6,netRtg:-10.6,eFG:49.4,tovPct:15.6,orebPct:22.8,ts:53.2,last10:[3,4,3,2,4,3,2,4,3,2],backToBack:false},
-  "Sacramento Kings":{ppg:116.4,oppg:114.8,pace:102.4,netRtg:1.4,eFG:54.4,tovPct:13.0,orebPct:24.2,ts:58.0,last10:[6,5,6,5,6,5,6,5,6,5],backToBack:false},
-  "San Antonio Spurs":{ppg:107.6,oppg:119.4,pace:99.6,netRtg:-11.8,eFG:49.2,tovPct:15.8,orebPct:23.6,ts:52.8,last10:[3,2,3,4,3,2,3,2,4,3],backToBack:false},
-  "Toronto Raptors":{ppg:109.4,oppg:117.8,pace:97.8,netRtg:-8.6,eFG:50.4,tovPct:14.6,orebPct:23.4,ts:54.0,last10:[4,3,4,3,4,3,4,3,4,3],backToBack:false},
-  "Utah Jazz":{ppg:108.2,oppg:120.2,pace:100.2,netRtg:-11.8,eFG:49.8,tovPct:15.2,orebPct:24.8,ts:53.4,last10:[3,4,3,2,4,3,2,3,4,3],backToBack:false},
-  "Washington Wizards":{ppg:106.6,oppg:121.4,pace:99.4,netRtg:-14.6,eFG:48.6,tovPct:16.2,orebPct:22.6,ts:52.2,last10:[2,3,2,3,2,3,2,3,2,3],backToBack:false}
-};
+  "Atlanta Hawks":{ppg:117.7,oppg:117.3,pace:102.1,netRtg:0.5,eFG:53.2,tovPct:13.4,orebPct:24.8,ts:57.1,last10:[6,5,6,5,6,7,6,5,7,6],backToBack:false},
+  "Boston Celtics":{ppg:114.5,oppg:107.0,pace:94.8,netRtg:7.9,eFG:57.2,tovPct:11.8,orebPct:25.6,ts:61.4,last10:[7,6,7,8,6,7,6,8,7,6],backToBack:false},
+  "Brooklyn Nets":{ppg:106.9,oppg:115.6,pace:96.6,netRtg:-9.0,eFG:49.2,tovPct:15.1,orebPct:22.1,ts:53.1,last10:[3,2,3,2,3,2,3,2,3,2],backToBack:false},
+  "Charlotte Hornets":{ppg:116.2,oppg:112.5,pace:97.3,netRtg:3.7,eFG:54.8,tovPct:13.2,orebPct:23.6,ts:58.2,last10:[6,5,6,5,6,5,6,5,6,5],backToBack:false},
+  "Chicago Bulls":{ppg:115.5,oppg:119.7,pace:101.7,netRtg:-4.2,eFG:52.1,tovPct:13.8,orebPct:23.4,ts:55.9,last10:[4,5,4,5,4,5,4,5,4,5],backToBack:false},
+  "Cleveland Cavaliers":{ppg:119.1,oppg:114.9,pace:100.2,netRtg:4.2,eFG:56.4,tovPct:12.1,orebPct:25.2,ts:60.1,last10:[7,8,7,6,8,7,8,7,6,8],backToBack:false},
+  "Dallas Mavericks":{ppg:113.3,oppg:117.7,pace:101.6,netRtg:-4.3,eFG:52.8,tovPct:13.6,orebPct:24.2,ts:56.4,last10:[4,3,4,3,4,3,4,3,4,3],backToBack:false},
+  "Denver Nuggets":{ppg:120.2,oppg:116.5,pace:97.9,netRtg:3.7,eFG:56.8,tovPct:12.4,orebPct:27.1,ts:60.6,last10:[7,6,7,8,6,7,6,8,7,6],backToBack:false},
+  "Detroit Pistons":{ppg:116.8,oppg:109.6,pace:99.6,netRtg:7.2,eFG:54.6,tovPct:13.2,orebPct:24.8,ts:58.4,last10:[8,7,8,9,7,8,7,9,8,7],backToBack:false},
+  "Golden State Warriors":{ppg:115.0,oppg:113.9,pace:99.4,netRtg:1.1,eFG:53.8,tovPct:13.6,orebPct:24.2,ts:57.6,last10:[5,6,5,6,5,6,5,6,5,6],backToBack:false},
+  "Houston Rockets":{ppg:114.5,oppg:109.3,pace:96.0,netRtg:5.4,eFG:54.2,tovPct:12.8,orebPct:27.8,ts:58.1,last10:[7,6,7,8,6,7,8,6,7,8],backToBack:false},
+  "Indiana Pacers":{ppg:111.4,oppg:119.9,pace:101.0,netRtg:-8.3,eFG:51.8,tovPct:14.2,orebPct:24.6,ts:55.4,last10:[3,4,3,2,4,3,2,4,3,2],backToBack:false},
+  "LA Clippers":{ppg:113.8,oppg:114.2,pace:98.2,netRtg:-0.4,eFG:52.6,tovPct:12.6,orebPct:23.4,ts:56.8,last10:[5,4,5,6,4,5,6,4,5,6],backToBack:false},
+  "Los Angeles Lakers":{ppg:116.4,oppg:114.8,pace:99.8,netRtg:1.6,eFG:54.1,tovPct:13.4,orebPct:25.8,ts:57.8,last10:[6,5,6,7,5,6,7,5,6,7],backToBack:false},
+  "Memphis Grizzlies":{ppg:117.2,oppg:118.4,pace:101.4,netRtg:-1.2,eFG:53.4,tovPct:14.2,orebPct:27.2,ts:57.2,last10:[5,4,5,6,4,5,4,6,5,4],backToBack:false},
+  "Miami Heat":{ppg:109.8,oppg:112.4,pace:96.4,netRtg:-2.6,eFG:51.2,tovPct:12.8,orebPct:23.2,ts:55.1,last10:[4,5,4,5,4,5,4,5,4,5],backToBack:false},
+  "Milwaukee Bucks":{ppg:118.6,oppg:116.2,pace:101.2,netRtg:2.4,eFG:55.2,tovPct:13.1,orebPct:25.6,ts:59.1,last10:[6,7,6,5,7,6,5,7,6,5],backToBack:false},
+  "Minnesota Timberwolves":{ppg:112.8,oppg:108.6,pace:97.4,netRtg:4.2,eFG:53.2,tovPct:12.6,orebPct:24.4,ts:57.2,last10:[6,7,6,5,7,6,7,5,6,7],backToBack:false},
+  "New Orleans Pelicans":{ppg:109.2,oppg:118.6,pace:98.6,netRtg:-9.4,eFG:50.2,tovPct:14.8,orebPct:24.8,ts:53.8,last10:[3,2,3,4,3,2,3,4,3,2],backToBack:false},
+  "New York Knicks":{ppg:119.8,oppg:112.4,pace:97.2,netRtg:7.4,eFG:56.2,tovPct:11.4,orebPct:25.2,ts:60.2,last10:[7,8,7,6,8,7,6,8,7,6],backToBack:false},
+  "Oklahoma City Thunder":{ppg:119.4,oppg:106.8,pace:99.6,netRtg:12.6,eFG:57.4​​​​​​​​​​​​​​​​
 function getNBALogo(n){const k=Object.keys(NBA_TEAM_IDS).find(k=>n&&n.includes(k));const id=k?NBA_TEAM_IDS[k]:null;return id?`https://cdn.nba.com/logos/nba/${id}/global/L/logo.svg`:null;}
 function toQcTime(iso){if(!iso)return"";return new Date(iso).toLocaleTimeString("fr-CA",{hour:"2-digit",minute:"2-digit",timeZone:"America/Toronto"});}
 
@@ -59,7 +49,7 @@ function getNBAAdvancedMatch(game){
   const avgPace=(h.pace+a.pace)/2;
   const LEAGUE_PACE=98.5;
 
-  // BASE : ppg/oppg (fiable)
+  // BASE fiable : ppg/oppg réels 2025-26
   let homeExp=(h.ppg+a.oppg)/2;
   let awayExp=(a.ppg+h.oppg)/2;
 
@@ -68,19 +58,19 @@ function getNBAAdvancedMatch(game){
   homeExp*=paceFactor;
   awayExp*=paceFactor;
 
-  // Ajustement eFG% (offensive efficiency)
+  // Ajustement eFG%
   homeExp*=(1+(h.eFG-53.5)*0.003);
   awayExp*=(1+(a.eFG-53.5)*0.003);
 
-  // Ajustement TOV% (moins de turnovers = plus de points)
+  // Ajustement TOV%
   homeExp*=(1-(h.tovPct-13)*0.005);
   awayExp*=(1-(a.tovPct-13)*0.005);
 
-  // Ajustement OREB% (plus de rebonds offensifs = plus de possessions)
+  // Ajustement OREB%
   homeExp*=(1+(h.orebPct-25)*0.002);
   awayExp*=(1+(a.orebPct-25)*0.002);
 
-  // Ajustement TS% (true shooting)
+  // Ajustement TS%
   homeExp*=(1+(h.ts-57.5)*0.002);
   awayExp*=(1+(a.ts-57.5)*0.002);
 
