@@ -13,7 +13,7 @@ const TEAM_IDS = {
   Jazz:1610612762, Wizards:1610612764
 };
 
-const TEAM_STATS = {
+const HARDCODED_STATS = {
   "Atlanta Hawks":{ppg:117.7,oppg:117.3,pace:102.1,backToBack:false},
   "Boston Celtics":{ppg:114.5,oppg:107.0,pace:94.8,backToBack:false},
   "Brooklyn Nets":{ppg:106.9,oppg:115.6,pace:96.6,backToBack:false},
@@ -53,39 +53,38 @@ function getLogoUrl(teamName){
   return id?`https://cdn.nba.com/logos/nba/${id}/global/L/logo.svg`:null;
 }
 
-function getPreMatch(game){
-  const hKey=Object.keys(TEAM_STATS).find(k=>game.homeFull&&game.homeFull.includes(k.split(" ").pop()));
-  const aKey=Object.keys(TEAM_STATS).find(k=>game.awayFull&&game.awayFull.includes(k.split(" ").pop()));
-  const h=hKey?TEAM_STATS[hKey]:null;
-  const a=aKey?TEAM_STATS[aKey]:null;
-  if(!h||!a) return null;
-  const homeExp=(h.ppg+a.oppg)/2+1.6;
-  const awayExp=(a.ppg+h.oppg)/2;
-  let proj=homeExp+awayExp;
-  proj+=(((h.pace+a.pace)/2)-98.5)*0.8;
-  if(h.backToBack) proj-=3.5;
-  if(a.backToBack) proj-=3.5;
-  const ratio=homeExp/(homeExp+awayExp);
-  const homeProjScore=Math.round(proj*ratio);
-  const awayProjScore=Math.round(proj-homeProjScore);
-  const winner=homeProjScore>=awayProjScore?game.home:game.away;
-  return{
-    proj:+proj.toFixed(1),
-    homeProjScore,awayProjScore,
-    homePpg:h.ppg,awayPpg:a.ppg,
-    homeOppg:h.oppg,awayOppg:a.oppg,
-    homeB2B:h.backToBack,awayB2B:a.backToBack,
-    winner
-  };
-}
-
 const Q=12,TOTAL_MIN=48;
 function pt(t){if(!t||t==="0:00")return 0;const[m,s]=String(t).split(":").map(Number);return(m||0)+(s||0)/60;}
 function played(q,tl){return(q-1)*Q+(Q-pt(tl));}
 function remaining(q,tl){return Math.max(0,TOTAL_MIN-played(q,tl));}
 function qMult(q,tl){const r=pt(tl);if(q===4&&r<2)return 0.65;if(q===4&&r<4)return 0.78;if(q===4)return 0.90;return 1.0;}
 
-function getSignal(game){
+function getPreMatchPrediction(game, teamStats){
+  if(!teamStats) return null;
+  const hKey=Object.keys(teamStats).find(k=>game.homeFull&&(game.homeFull.includes(k)||game.home===k));
+  const aKey=Object.keys(teamStats).find(k=>game.awayFull&&(game.awayFull.includes(k)||game.away===k));
+  const hStats=hKey?teamStats[hKey]:null;
+  const aStats=aKey?teamStats[aKey]:null;
+  if(!hStats?.ppg||!aStats?.ppg) return null;
+  const homeExp=(hStats.ppg+aStats.oppg)/2+1.6;
+  const awayExp=(aStats.ppg+hStats.oppg)/2;
+  let proj=homeExp+awayExp;
+  proj+=(((hStats.pace+aStats.pace)/2)-98.5)*0.8;
+  if(hStats.backToBack) proj-=3.5;
+  if(aStats.backToBack) proj-=3.5;
+  const ratio=homeExp/(homeExp+awayExp);
+  const homeProjScore=Math.round(proj*ratio);
+  const awayProjScore=Math.round(proj-homeProjScore);
+  const winner=homeProjScore>=awayProjScore?game.home:game.away;
+  return{
+    proj:+proj.toFixed(1),
+    homePpg:hStats.ppg,awayPpg:aStats.ppg,
+    homeOppg:hStats.oppg,awayOppg:aStats.oppg,
+    homeProjScore,awayProjScore,winner
+  };
+}
+
+function getLiveSignal(game){
   if(!game.isLive||!game.total||(!game.homeScore&&!game.awayScore)){
     return{type:"SCHEDULED",label:"A VENIR",edge:0,confidence:0,projection:0};
   }
@@ -106,7 +105,7 @@ function getSignal(game){
   else if(edge<-12&&conf>=55){type="STRONG_UNDER";label="STRONG UNDER";}
   else if(edge<-5&&conf>=40){type="UNDER";label="UNDER";}
   else{type="NEUTRAL";label="NEUTRE";}
-  return{type,label,edge,confidence:conf,projection:proj};
+  return{type,label,edge,confidence:conf,projection:proj,remaining:+r.toFixed(1)};
 }
 
 const COLORS={STRONG_OVER:"#007733",OVER:"#009944",NEUTRAL:"#888",UNDER:"#cc3300",STRONG_UNDER:"#aa0022",SCHEDULED:"#aaa"};
@@ -124,101 +123,45 @@ function Ring({value,color,size=56}){
   );
 }
 
-function TeamLogo({name,size=36}){
+function TeamLogo({name,size=32}){
   const url=getLogoUrl(name);
   if(!url)return<span style={{fontSize:size*0.7}}>🏀</span>;
   return<img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display="none"}/>;
 }
 
-function LiveCard({game,selected,onSelect}){
-  const sig=getSignal(game);
-  const c=COLORS[sig.type];
-  const scored=(game.homeScore||0)+(game.awayScore||0);
-  const progress=game.total?Math.min((scored/game.total)*100,100):0;
-  const[pulse,setPulse]=useState(false);
-  useEffect(()=>{const t=setInterval(()=>setPulse(p=>!p),1600);return()=>clearInterval(t);},[]);
+function PreMatchCard({game,teamStats}){
+  const pred=getPreMatchPrediction(game,teamStats);
   return(
-    <div onClick={()=>onSelect(game.id)} style={{background:selected?"#f8fff8":"#ffffff",border:`1px solid ${selected?c+"66":"#e0e0e0"}`,borderRadius:13,padding:"15px 17px",cursor:"pointer",transition:"all 0.2s",boxShadow:selected?`0 0 18px ${c}20`:"0 1px 6px #00000008",position:"relative"}}>
-      <div style={{position:"absolute",top:11,right:12,display:"flex",alignItems:"center",gap:5}}>
-        <div style={{width:6,height:6,borderRadius:"50%",background:"#cc0000",boxShadow:pulse?"0 0 8px #cc0000":"none",transition:"box-shadow 0.4s"}}/>
-        <span style={{color:"#cc0000",fontSize:8,fontWeight:700}}>LIVE</span>
-      </div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
+    <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:13,padding:"15px 17px",boxShadow:"0 1px 6px #00000008"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <TeamLogo name={game.awayFull} size={36}/>
           <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span>
         </div>
         <div style={{textAlign:"center"}}>
-          <div style={{color:"#111",fontSize:22,fontWeight:900}}>{game.awayScore}-{game.homeScore}</div>
-          <div style={{color:"#e67e00",fontSize:9,fontWeight:700}}>Q{game.quarter} {game.timeLeft}</div>
+          <div style={{color:"#111",fontSize:18,fontWeight:900}}>VS</div>
+          <div style={{color:"#888",fontSize:10,fontWeight:700,fontFamily:"monospace"}}>{game.time?.slice(11,16)} ET</div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span>
           <TeamLogo name={game.homeFull} size={36}/>
         </div>
       </div>
-      {game.total&&(
-        <>
-          <div style={{height:3,background:"#e0e0e0",borderRadius:2,overflow:"hidden",marginBottom:9}}>
-            <div style={{height:"100%",width:`${progress}%`,background:c,transition:"width 1s"}}/>
-          </div>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-            <div style={{background:BGCOLORS[sig.type],border:`1px solid ${BORDERCOLORS[sig.type]}`,borderRadius:6,padding:"4px 9px",color:c,fontSize:11,fontWeight:800}}>{sig.label}</div>
-            <div style={{display:"flex",alignItems:"center",gap:9}}>
-              <div style={{textAlign:"right"}}>
-                <div style={{color:"#aaa",fontSize:8}}>PROJ / LINE</div>
-                <div style={{color:c,fontSize:14,fontWeight:900}}>{sig.projection} / {game.total}</div>
-              </div>
-              <Ring value={sig.confidence} color={c} size={46}/>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-function PreMatchCard({game}){
-  const pred=getPreMatch(game);
-  return(
-    <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:13,padding:"15px 17px",boxShadow:"0 1px 6px #00000008"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <TeamLogo name={game.awayFull} size={36}/>
-          <div>
-            <div style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</div>
-            {pred?.awayB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>B2B</div>}
-          </div>
-        </div>
-        <div style={{textAlign:"center"}}>
-          <div style={{color:"#111",fontSize:18,fontWeight:900}}>VS</div>
-          <div style={{color:"#888",fontSize:10,fontWeight:700}}>{game.time}</div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <div style={{textAlign:"right"}}>
-            <div style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</div>
-            {pred?.homeB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>B2B</div>}
-          </div>
-          <TeamLogo name={game.homeFull} size={36}/>
-        </div>
-      </div>
       <div style={{background:"#f4f4f4",borderRadius:10,padding:"10px 12px"}}>
         {pred?(
           <>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:8}}>
               <div style={{textAlign:"center"}}>
-                <div style={{color:"#777",fontSize:8}}>MOY {game.away}</div>
+                <div style={{color:"#777",fontSize:8,fontFamily:"monospace"}}>MOY {game.away}</div>
                 <div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.awayPpg}</div>
-                <div style={{color:"#aaa",fontSize:8}}>DEF {pred.awayOppg}</div>
               </div>
               <div style={{textAlign:"center"}}>
-                <div style={{color:"#777",fontSize:8}}>PROJECTION</div>
+                <div style={{color:"#777",fontSize:8,fontFamily:"monospace"}}>PROJECTION</div>
                 <div style={{color:"#7c3aed",fontSize:20,fontWeight:900}}>{pred.proj}</div>
               </div>
               <div style={{textAlign:"center"}}>
-                <div style={{color:"#777",fontSize:8}}>MOY {game.home}</div>
+                <div style={{color:"#777",fontSize:8,fontFamily:"monospace"}}>MOY {game.home}</div>
                 <div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.homePpg}</div>
-                <div style={{color:"#aaa",fontSize:8}}>DEF {pred.homeOppg}</div>
               </div>
             </div>
             <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:8,padding:"8px 12px",marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -240,19 +183,71 @@ function PreMatchCard({game}){
                 {pred.winner} GAGNE
               </div>
             </div>
-            {game.total&&(
+            {game.total?(
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{fontSize:10,color:"#555",fontWeight:700}}>TOTAL: {game.total}</div>
-                <div style={{background:pred.proj>game.total?"#00aa5515":"#ff330015",border:`1px solid ${pred.proj>game.total?"#00aa5530":"#ff330025"}`,borderRadius:6,padding:"3px 8px",color:pred.proj>game.total?"#007733":"#cc3300",fontSize:10,fontWeight:800}}>
+                <div style={{fontSize:10,color:"#555",fontWeight:700,fontFamily:"monospace"}}>LINE: {game.total}</div>
+                <div style={{background:pred.proj>game.total?"#00aa5515":"#ff330015",border:`1px solid ${pred.proj>game.total?"#00aa5530":"#ff330025"}`,borderRadius:6,padding:"3px 8px",color:pred.proj>game.total?"#007733":"#cc3300",fontSize:10,fontWeight:800,fontFamily:"monospace"}}>
                   {pred.proj>game.total?"OVER PREVU":"UNDER PREVU"}
                 </div>
               </div>
+            ):(
+              <div style={{color:"#aaa",fontSize:9,fontFamily:"monospace",textAlign:"center"}}>Line non disponible</div>
             )}
           </>
         ):(
-          <div style={{color:"#aaa",fontSize:9,textAlign:"center",padding:"8px 0"}}>Stats non disponibles</div>
+          <div style={{color:"#aaa",fontSize:9,fontFamily:"monospace",textAlign:"center",padding:"8px 0"}}>Stats non disponibles</div>
         )}
       </div>
+    </div>
+  );
+}
+
+function LiveCard({game,selected,onSelect}){
+  const sig=getLiveSignal(game);
+  const c=COLORS[sig.type];
+  const bg=BGCOLORS[sig.type];
+  const border=BORDERCOLORS[sig.type];
+  const scored=(game.homeScore||0)+(game.awayScore||0);
+  const progress=game.total?Math.min((scored/game.total)*100,100):0;
+  const[pulse,setPulse]=useState(false);
+  useEffect(()=>{const t=setInterval(()=>setPulse(p=>!p),1600);return()=>clearInterval(t);},[]);
+  return(
+    <div onClick={()=>onSelect(game.id)} style={{background:selected?"#f8fff8":"#ffffff",border:`1px solid ${selected?c+"66":"#e0e0e0"}`,borderRadius:13,padding:"15px 17px",cursor:"pointer",transition:"all 0.2s",boxShadow:selected?`0 0 18px ${c}20`:"0 1px 6px #00000008",position:"relative"}}>
+      <div style={{position:"absolute",top:11,right:12,display:"flex",alignItems:"center",gap:5}}>
+        <div style={{width:6,height:6,borderRadius:"50%",background:"#cc0000",boxShadow:pulse?"0 0 8px #cc0000":"none",transition:"box-shadow 0.4s"}}/>
+        <span style={{color:"#cc0000",fontSize:8,fontFamily:"monospace",fontWeight:700}}>LIVE</span>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <TeamLogo name={game.awayFull} size={36}/>
+          <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span>
+        </div>
+        <div style={{textAlign:"center"}}>
+          <div style={{color:"#111",fontSize:22,fontWeight:900}}>{game.awayScore}-{game.homeScore}</div>
+          <div style={{color:"#e67e00",fontSize:9,fontWeight:700}}>Q{game.quarter} {game.timeLeft}</div>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span>
+          <TeamLogo name={game.homeFull} size={36}/>
+        </div>
+      </div>
+      {game.total&&(
+        <>
+          <div style={{height:3,background:"#e0e0e0",borderRadius:2,overflow:"hidden",marginBottom:9}}>
+            <div style={{height:"100%",width:`${progress}%`,background:c,transition:"width 1s"}}/>
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{background:bg,border:`1px solid ${border}`,borderRadius:6,padding:"4px 9px",color:c,fontFamily:"monospace",fontSize:11,fontWeight:800}}>{sig.label}</div>
+            <div style={{display:"flex",alignItems:"center",gap:9}}>
+              <div style={{textAlign:"right"}}>
+                <div style={{color:"#aaa",fontSize:8,fontFamily:"monospace"}}>PROJ / LINE</div>
+                <div style={{color:c,fontFamily:"monospace",fontSize:14,fontWeight:900}}>{sig.projection} / {game.total}</div>
+              </div>
+              <Ring value={sig.confidence} color={c} size={46}/>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -263,34 +258,34 @@ export default function App(){
   const[status,setStatus]=useState("loading");
   const[lastUpdate,setLastUpdate]=useState(null);
 
-  const loadGames=async()=>{
+  const loadData=async()=>{
     try{
-      const res=await fetch(`${PROXY}/nba/scores`);
-      const data=await res.json();
-      if(!Array.isArray(data)) throw new Error("bad data");
-      setGames(data);
-      if(!selectedId&&data.length>0){
-        setSelectedId((data.find(g=>g.isLive)||data[0]).id);
+      const scoresRes=await fetch(`${PROXY}/nba/scores`);
+      const scores=await scoresRes.json();
+      if(!Array.isArray(scores)) throw new Error("bad scores");
+      setGames(scores);
+      if(!selectedId&&scores.length>0){
+        setSelectedId((scores.find(g=>g.isLive)||scores[0]).id);
       }
-      setLastUpdate(new Date().toLocaleTimeString("fr-CA",{timeZone:"America/Toronto"}));
+      setLastUpdate(new Date().toLocaleTimeString("fr-CA"));
       setStatus("ok");
     }catch(e){
       setStatus("error");
     }
   };
 
-  useEffect(()=>{loadGames();const iv=setInterval(loadGames,30000);return()=>clearInterval(iv);},[]);
+  useEffect(()=>{loadData();const iv=setInterval(loadData,30000);return()=>clearInterval(iv);},[]);
 
-  const liveGames=games.filter(g=>g.isLive).sort((a,b)=>getSignal(b).confidence-getSignal(a).confidence);
-  const scheduledGames=games.filter(g=>!g.isLive&&!g.isFinished);
   const selected=games.find(g=>g.id===selectedId);
-  const sig=selected&&selected.isLive?getSignal(selected):{type:"SCHEDULED",label:"",edge:0,confidence:0,projection:0};
+  const sig=selected?getLiveSignal(selected):{type:"SCHEDULED",label:"",edge:0,confidence:0,projection:0};
   const c=COLORS[sig.type];
+  const liveGames=games.filter(g=>g.isLive).sort((a,b)=>getLiveSignal(b).confidence-getLiveSignal(a).confidence);
+  const scheduledGames=games.filter(g=>!g.isLive&&!g.isFinished);
 
   return(
     <div style={{minHeight:"100vh",background:"#f5f5f5",color:"#111",fontFamily:"monospace"}}>
       <div style={{borderBottom:"1px solid #e0e0e0",padding:"14px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",background:"#ffffff",position:"sticky",top:0,zIndex:100,boxShadow:"0 1px 8px #00000010"}}>
-        <span style={{background:"linear-gradient(135deg,#7c3aed,#00aa55)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontSize:16,fontWeight:900,letterSpacing:2}}>NBA BETTING SIGNALS</span>
+        <span style={{background:"linear-gradient(135deg,#7c3aed,#00aa55)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontSize:18,fontWeight:900,letterSpacing:2}}>NBA SIGNALS</span>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           {lastUpdate&&<span style={{color:"#aaa",fontSize:8}}>↻ {lastUpdate}</span>}
           {liveGames.length>0&&<span style={{background:"#cc000015",border:"1px solid #cc000030",borderRadius:4,padding:"3px 9px",color:"#cc0000",fontSize:9,fontWeight:700}}>{liveGames.length} LIVE</span>}
@@ -300,13 +295,16 @@ export default function App(){
       {status==="loading"&&(
         <div style={{display:"flex",justifyContent:"center",alignItems:"center",height:"70vh",flexDirection:"column",gap:14}}>
           <div style={{color:"#aaa",fontSize:11,letterSpacing:2}}>Chargement des matchs...</div>
+          <div style={{display:"flex",gap:6}}>
+            {[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:"#7c3aed",opacity:0.3+i*0.3}}/>)}
+          </div>
         </div>
       )}
 
       {status==="error"&&(
         <div style={{margin:20,background:"#fff5f5",border:"1px solid #cc000030",borderRadius:12,padding:"18px 22px"}}>
           <div style={{color:"#cc0000",fontSize:12,marginBottom:8,fontWeight:700}}>Impossible de charger les donnees</div>
-          <button onClick={()=>{setStatus("loading");loadGames();}} style={{background:"#7c3aed15",border:"1px solid #7c3aed30",borderRadius:6,color:"#7c3aed",fontFamily:"monospace",fontSize:11,padding:"6px 14px",cursor:"pointer",fontWeight:700}}>Reessayer</button>
+          <button onClick={()=>{setStatus("loading");loadData();}} style={{background:"#7c3aed15",border:"1px solid #7c3aed30",borderRadius:6,color:"#7c3aed",fontFamily:"monospace",fontSize:11,padding:"6px 14px",cursor:"pointer",fontWeight:700}}>Reessayer</button>
         </div>
       )}
 
@@ -335,29 +333,32 @@ export default function App(){
                   {label:"EDGE",val:`${sig.edge>0?"+":""}${sig.edge}`,color:sig.edge>3?"#007733":sig.edge<-3?"#cc3300":"#888"}
                 ].map((m,i)=>(
                   <div key={i} style={{background:"#f4f4f4",border:"1px solid #e0e0e0",borderRadius:10,padding:"12px"}}>
-                    <div style={{color:"#aaa",fontSize:8,marginBottom:3}}>{m.label}</div>
+                    <div style={{color:"#aaa",fontSize:8,marginBottom:3,fontFamily:"monospace"}}>{m.label}</div>
                     <div style={{color:m.color,fontSize:20,fontWeight:900}}>{m.val}</div>
                   </div>
                 ))}
               </div>
               <div style={{background:"#f4f4f4",border:`1px solid ${BORDERCOLORS[sig.type]}`,borderRadius:10,padding:"14px"}}>
-                <div style={{color:"#7c3aed",fontSize:12,fontWeight:800}}>
+                <div style={{color:"#7c3aed",fontSize:12,fontWeight:800,marginBottom:8}}>
                   {sig.type==="STRONG_OVER"&&"BET OVER — forte conviction"}
                   {sig.type==="OVER"&&"OVER possible — conviction moyenne"}
                   {sig.type==="STRONG_UNDER"&&"BET UNDER — forte conviction"}
                   {sig.type==="UNDER"&&"UNDER possible — surveiller"}
                   {sig.type==="NEUTRAL"&&"Pas d'edge clair — attendre"}
                 </div>
+                <a href="https://polymarket.com/sports/basketball/nba" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,background:"linear-gradient(135deg,#7c3aed,#5b21b6)",color:"#fff",textDecoration:"none",borderRadius:7,padding:"8px 14px",fontFamily:"monospace",fontSize:11,fontWeight:700}}>OUVRIR POLYMARKET</a>
               </div>
             </div>
           )}
           {scheduledGames.length>0&&(
             <>
               <div style={{color:"#555",fontSize:8,letterSpacing:3,paddingLeft:3,fontWeight:700,marginTop:4}}>PREDICTIONS PRE-MATCH</div>
-              {scheduledGames.map(g=><PreMatchCard key={g.id} game={g}/>)}
+              {scheduledGames.map(g=><PreMatchCard key={g.id} game={g} teamStats={HARDCODED_STATS}/>)}
             </>
           )}
-          {games.length===0&&<div style={{textAlign:"center",color:"#aaa",padding:40,fontSize:12}}>Aucun match NBA aujourd'hui</div>}
+          {games.length===0&&(
+            <div style={{textAlign:"center",color:"#aaa",padding:40,fontSize:12}}>Aucun match NBA aujourd'hui</div>
+          )}
         </div>
       )}
     </div>
