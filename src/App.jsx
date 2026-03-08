@@ -13,7 +13,6 @@ const NBA_TEAM_IDS = {
   Jazz:1610612762,Wizards:1610612764
 };
 
-// Stats réelles 2025-26 saison en cours (mars 2026) — source nbastuffer.com
 const NBA_STATS = {
   "Atlanta Hawks":{ppg:117.7,oppg:117.3,pace:102.1,netRtg:0.5,eFG:53.2,tovPct:13.4,orebPct:24.8,ts:57.1,last10:[6,5,6,5,6,7,6,5,7,6],backToBack:false},
   "Boston Celtics":{ppg:114.5,oppg:107.0,pace:94.8,netRtg:7.9,eFG:57.2,tovPct:11.8,orebPct:25.6,ts:61.4,last10:[7,6,7,8,6,7,6,8,7,6],backToBack:false},
@@ -35,7 +34,18 @@ const NBA_STATS = {
   "Minnesota Timberwolves":{ppg:112.8,oppg:108.6,pace:97.4,netRtg:4.2,eFG:53.2,tovPct:12.6,orebPct:24.4,ts:57.2,last10:[6,7,6,5,7,6,7,5,6,7],backToBack:false},
   "New Orleans Pelicans":{ppg:109.2,oppg:118.6,pace:98.6,netRtg:-9.4,eFG:50.2,tovPct:14.8,orebPct:24.8,ts:53.8,last10:[3,2,3,4,3,2,3,4,3,2],backToBack:false},
   "New York Knicks":{ppg:119.8,oppg:112.4,pace:97.2,netRtg:7.4,eFG:56.2,tovPct:11.4,orebPct:25.2,ts:60.2,last10:[7,8,7,6,8,7,6,8,7,6],backToBack:false},
-  "Oklahoma City Thunder":{ppg:119.4,oppg:106.8,pace:99.6,netRtg:12.6,eFG:57.4​​​​​​​​​​​​​​​​
+  "Oklahoma City Thunder":{ppg:119.4,oppg:106.8,pace:99.6,netRtg:12.6,eFG:57.4,tovPct:11.2,orebPct:26.2,ts:61.2,last10:[9,8,9,8,9,8,9,8,9,8],backToBack:false},
+  "Orlando Magic":{ppg:108.4,oppg:106.2,pace:95.8,netRtg:2.2,eFG:51.8,tovPct:12.4,orebPct:26.4,ts:55.4,last10:[6,5,6,5,6,5,6,5,6,5],backToBack:false},
+  "Philadelphia 76ers":{ppg:107.8,oppg:114.6,pace:97.6,netRtg:-6.8,eFG:50.4,tovPct:14.6,orebPct:24.2,ts:54.2,last10:[3,4,3,4,3,4,3,4,3,4],backToBack:false},
+  "Phoenix Suns":{ppg:112.6,oppg:116.8,pace:99.2,netRtg:-4.2,eFG:52.4,tovPct:13.8,orebPct:23.6,ts:56.2,last10:[4,5,4,3,5,4,3,5,4,3],backToBack:false},
+  "Portland Trail Blazers":{ppg:108.2,oppg:119.6,pace:100.4,netRtg:-11.4,eFG:49.2,tovPct:15.8,orebPct:22.6,ts:52.8,last10:[3,2,3,2,3,2,3,2,3,2],backToBack:false},
+  "Sacramento Kings":{ppg:117.4,oppg:116.2,pace:102.8,netRtg:1.2,eFG:54.6,tovPct:13.2,orebPct:24.4,ts:58.2,last10:[5,6,5,6,5,6,5,6,5,6],backToBack:false},
+  "San Antonio Spurs":{ppg:110.4,oppg:120.6,pace:100.2,netRtg:-10.2,eFG:50.2,tovPct:15.4,orebPct:23.8,ts:53.8,last10:[3,2,3,2,3,2,3,2,3,2],backToBack:false},
+  "Toronto Raptors":{ppg:109.6,oppg:118.2,pace:98.4,netRtg:-8.6,eFG:50.8,tovPct:14.4,orebPct:23.2,ts:54.4,last10:[3,4,3,3,4,3,4,3,3,4],backToBack:false},
+  "Utah Jazz":{ppg:107.8,oppg:121.4,pace:100.6,netRtg:-13.6,eFG:49.4,tovPct:15.6,orebPct:24.6,ts:52.6,last10:[2,3,2,3,2,3,2,3,2,3],backToBack:false},
+  "Washington Wizards":{ppg:105.8,oppg:122.6,pace:99.8,netRtg:-16.8,eFG:48.2,tovPct:16.4,orebPct:22.4,ts:51.8,last10:[2,1,2,3,2,1,2,3,2,1],backToBack:false}
+};
+
 function getNBALogo(n){const k=Object.keys(NBA_TEAM_IDS).find(k=>n&&n.includes(k));const id=k?NBA_TEAM_IDS[k]:null;return id?`https://cdn.nba.com/logos/nba/${id}/global/L/logo.svg`:null;}
 function toQcTime(iso){if(!iso)return"";return new Date(iso).toLocaleTimeString("fr-CA",{hour:"2-digit",minute:"2-digit",timeZone:"America/Toronto"});}
 
@@ -45,48 +55,28 @@ function getNBAAdvancedMatch(game){
   const h=hKey?NBA_STATS[hKey]:null;
   const a=aKey?NBA_STATS[aKey]:null;
   if(!h||!a)return null;
-
   const avgPace=(h.pace+a.pace)/2;
   const LEAGUE_PACE=98.5;
-
-  // BASE fiable : ppg/oppg réels 2025-26
   let homeExp=(h.ppg+a.oppg)/2;
   let awayExp=(a.ppg+h.oppg)/2;
-
-  // Ajustement pace
   const paceFactor=avgPace/LEAGUE_PACE;
   homeExp*=paceFactor;
   awayExp*=paceFactor;
-
-  // Ajustement eFG%
   homeExp*=(1+(h.eFG-53.5)*0.003);
   awayExp*=(1+(a.eFG-53.5)*0.003);
-
-  // Ajustement TOV%
   homeExp*=(1-(h.tovPct-13)*0.005);
   awayExp*=(1-(a.tovPct-13)*0.005);
-
-  // Ajustement OREB%
   homeExp*=(1+(h.orebPct-25)*0.002);
   awayExp*=(1+(a.orebPct-25)*0.002);
-
-  // Ajustement TS%
   homeExp*=(1+(h.ts-57.5)*0.002);
   awayExp*=(1+(a.ts-57.5)*0.002);
-
-  // Forme récente last10
   const hRecent=h.last10.reduce((a,b)=>a+b,0)/h.last10.length;
   const aRecent=a.last10.reduce((a,b)=>a+b,0)/a.last10.length;
   homeExp=homeExp*0.82+(hRecent/10)*homeExp*0.18;
   awayExp=awayExp*0.82+(aRecent/10)*awayExp*0.18;
-
-  // Avantage domicile
   homeExp+=2.4;
-
-  // Back-to-back
   if(h.backToBack)homeExp-=3.5;
   if(a.backToBack)awayExp-=3.5;
-
   const proj=+(homeExp+awayExp).toFixed(1);
   const ratio=homeExp/(homeExp+awayExp);
   const homeProjScore=Math.round(homeExp);
@@ -94,7 +84,6 @@ function getNBAAdvancedMatch(game){
   const homePct=Math.round(ratio*100);
   const awayPct=100-homePct;
   const winner=homeProjScore>=awayProjScore?game.home:game.away;
-
   let spreadCover=null;
   if(game.spread!=null&&game.spreadTeam){
     const favHome=game.home===game.spreadTeam||(game.homeFull&&game.homeFull.includes(game.spreadTeam));
@@ -102,7 +91,6 @@ function getNBAAdvancedMatch(game){
     if(favHome){spreadCover=diff>=Math.abs(game.spread)?{team:game.home,spread:-Math.abs(game.spread)}:{team:game.away,spread:+Math.abs(game.spread)};}
     else{spreadCover=(-diff)>=Math.abs(game.spread)?{team:game.away,spread:-Math.abs(game.spread)}:{team:game.home,spread:+Math.abs(game.spread)};}
   }
-
   let ouSignal=null;
   if(game.total){
     const edge=+(proj-game.total).toFixed(1);
@@ -116,7 +104,6 @@ function getNBAAdvancedMatch(game){
     const conf=Math.min(92,Math.round(45+absEdge*3.2+(Math.abs(h.netRtg-a.netRtg)*0.8)));
     ouSignal={type,label,edge,proj,conf};
   }
-
   return{proj,homeProjScore,awayProjScore,homePct,awayPct,winner,spreadCover,ouSignal,
     homeB2B:h.backToBack,awayB2B:a.backToBack,
     homePace:h.pace,awayPace:a.pace,
@@ -174,6 +161,7 @@ function NBALogo({name,size=32}){
   if(!url)return <span style={{fontSize:size*0.7}}>🏀</span>;
   return <img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display="none"}/>;
 }
+
 export default function App(){
   const[nbaGames,setNbaGames]=useState([]);
   const[now,setNow]=useState(new Date());
@@ -296,7 +284,7 @@ export default function App(){
                         </div>
                       </div>
                       <div style={{background:"#f4f4f4",borderRadius:10,padding:"11px 12px",marginBottom:8}}>
-                        <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:8,fontWeight:700}}>SCORE PRÉDIT / VICTOIRE</div>
+                        <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:8,fontWeight:700}}>SCORE PREDIT / VICTOIRE</div>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                           <div>
                             <div style={{color:"#888",fontSize:9,marginBottom:2}}>{g.away}</div>
@@ -326,10 +314,10 @@ export default function App(){
                         </div>
                       </div>
                       <div style={{background:"#f4f4f4",borderRadius:10,padding:"10px 12px",marginBottom:8}}>
-                        <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:8,fontWeight:700}}>STATS AVANCÉES</div>
+                        <div style={{color:"#aaa",fontSize:8,letterSpacing:1,marginBottom:8,fontWeight:700}}>STATS AVANCEES</div>
                         <div style={{display:"flex",justifyContent:"space-between",gap:4}}>
                           {[
-                            {label:"NET RTG",away:pm.awayNetRtg,home:pm.homeNetRtg,fmt:v=>v>0?`+${v}`:String(v),good:"high"},
+                            {label:"NET RTG",away:pm.awayNetRtg,home:pm.homeNetRtg,fmt:v=>v>0?"+"+v:String(v),good:"high"},
                             {label:"eFG%",away:pm.awayEfg,home:pm.homeEfg,fmt:v=>String(v),good:"high"},
                             {label:"TS%",away:pm.awayTs,home:pm.homeTs,fmt:v=>String(v),good:"high"},
                             {label:"TOV%",away:pm.awayTov,home:pm.homeTov,fmt:v=>String(v),good:"low"},
@@ -353,7 +341,7 @@ export default function App(){
                           <div style={{color:"#aaa",fontSize:7,marginBottom:2}}>TOTAL PICK</div>
                           <div style={{color:ouColor,fontSize:12,fontWeight:900}}>{pm.ouSignal.label} {g.total}</div>
                           <div style={{color:"#aaa",fontSize:7}}>Proj {pm.ouSignal.proj}</div>
-                          </div>}
+                        </div>}
                       </div>
                     </div>
                   );
