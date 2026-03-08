@@ -22,7 +22,8 @@ const NHL_ABBRS = {
   "New York Rangers":"NYR","Ottawa Senators":"OTT","Philadelphia Flyers":"PHI","Pittsburgh Penguins":"PIT",
   "San Jose Sharks":"SJS","Seattle Kraken":"SEA","St. Louis Blues":"STL","Tampa Bay Lightning":"TBL",
   "Toronto Maple Leafs":"TOR","Vancouver Canucks":"VAN","Vegas Golden Knights":"VGK",
-  "Washington Capitals":"WSH","Winnipeg Jets":"WPG"
+  "Washington Capitals":"WSH","Winnipeg Jets":"WPG",
+  "TB":"TBL","NJ":"NJD","LA":"LAK","SJ":"SJS","VGS":"VGK","CLB":"CBJ"
 };
 
 const NHL_TEAM_COLORS = {
@@ -36,41 +37,42 @@ const NHL_TEAM_COLORS = {
 };
 
 const NHL_STATS = {
-  ANA:{gf:2.4,ga:3.5,pp:17.2,pk:76.4,cf:47.2,xgf:46.8,pdo:97.2,shots:28.2,hdcf:47.1,svPct:89.2,last10:[3,4,3,5,2,4,3,2,4,3]},
-  BOS:{gf:3.4,ga:2.6,pp:22.4,pk:82.1,cf:54.1,xgf:55.2,pdo:101.8,shots:32.4,hdcf:55.8,svPct:91.8,last10:[7,6,6,8,5,7,6,7,5,8]},
-  BUF:{gf:2.9,ga:3.1,pp:19.8,pk:78.6,cf:49.4,xgf:48.9,pdo:99.1,shots:29.6,hdcf:49.2,svPct:90.1,last10:[5,4,5,6,4,5,4,5,6,4]},
-  CGY:{gf:2.8,ga:3.0,pp:20.1,pk:79.2,cf:50.2,xgf:49.8,pdo:99.4,shots:30.2,hdcf:50.1,svPct:90.4,last10:[5,4,5,4,5,4,5,4,5,4]},
-  CAR:{gf:3.2,ga:2.5,pp:21.8,pk:83.4,cf:55.6,xgf:56.1,pdo:102.4,shots:33.1,hdcf:56.2,svPct:92.4,last10:[7,6,7,8,6,7,6,8,7,6]},
-  CHI:{gf:2.3,ga:3.6,pp:16.8,pk:75.2,cf:45.8,xgf:44.9,pdo:96.8,shots:27.4,hdcf:45.2,svPct:88.8,last10:[3,2,3,4,3,2,3,2,4,3]},
-  COL:{gf:3.6,ga:2.8,pp:24.2,pk:81.6,cf:53.8,xgf:54.4,pdo:101.2,shots:34.2,hdcf:54.6,svPct:91.2,last10:[7,8,6,7,8,6,7,8,7,6]},
-  CBJ:{gf:2.5,ga:3.4,pp:18.4,pk:77.1,cf:46.9,xgf:46.2,pdo:97.6,shots:28.8,hdcf:46.8,svPct:89.6,last10:[4,3,4,3,4,3,4,3,4,3]},
-  DAL:{gf:3.3,ga:2.4,pp:23.1,pk:84.2,cf:56.2,xgf:57.0,pdo:103.1,shots:33.8,hdcf:57.1,svPct:92.1,last10:[7,8,7,6,8,7,8,7,6,8]},
-  DET:{gf:2.7,ga:3.2,pp:19.2,pk:78.0,cf:48.6,xgf:48.1,pdo:98.4,shots:29.4,hdcf:48.4,svPct:90.4,last10:[4,5,4,5,4,5,4,5,4,5]},
-  EDM:{gf:3.5,ga:3.1,pp:26.4,pk:79.2,cf:52.4,xgf:53.1,pdo:100.6,shots:33.6,hdcf:53.2,svPct:90.6,last10:[6,7,6,8,6,7,6,7,6,7]},
-  FLA:{gf:3.4,ga:2.7,pp:22.8,pk:82.6,cf:54.8,xgf:55.6,pdo:102.1,shots:32.8,hdcf:55.9,svPct:92.1,last10:[7,6,7,8,6,7,8,6,7,8]},
-  LAK:{gf:3.1,ga:2.6,pp:20.4,pk:81.8,cf:53.2,xgf:53.8,pdo:101.4,shots:31.6,hdcf:54.0,svPct:91.4,last10:[6,5,6,7,5,6,7,5,6,7]},
-  MIN:{gf:3.0,ga:2.8,pp:20.8,pk:80.4,cf:51.6,xgf:51.2,pdo:100.2,shots:30.8,hdcf:51.4,svPct:90.2,last10:[5,6,5,6,5,6,5,6,5,6]},
-  MTL:{gf:2.6,ga:3.3,pp:18.8,pk:77.8,cf:47.4,xgf:47.0,pdo:98.0,shots:29.0,hdcf:47.2,svPct:89.0,last10:[4,3,4,5,3,4,3,5,4,3]},
-  NSH:{gf:2.7,ga:3.1,pp:19.4,pk:78.4,cf:48.8,xgf:48.4,pdo:98.6,shots:29.6,hdcf:48.6,svPct:90.6,last10:[4,5,4,4,5,4,5,4,4,5]},
-  NJD:{gf:2.8,ga:2.9,pp:20.2,pk:80.2,cf:50.8,xgf:50.4,pdo:99.8,shots:30.4,hdcf:50.6,svPct:90.8,last10:[5,4,5,6,4,5,6,4,5,6]},
-  NYI:{gf:2.6,ga:2.9,pp:18.6,pk:80.8,cf:49.8,xgf:49.4,pdo:99.2,shots:29.8,hdcf:49.6,svPct:90.2,last10:[4,5,4,5,4,5,4,5,4,5]},
-  NYR:{gf:3.3,ga:2.6,pp:22.6,pk:82.6,cf:54.4,xgf:55.0,pdo:102.2,shots:32.6,hdcf:55.2,svPct:92.2,last10:[7,6,7,8,6,7,6,8,7,6]},
-  OTT:{gf:3.0,ga:3.0,pp:21.2,pk:79.8,cf:50.6,xgf:50.2,pdo:100.0,shots:30.6,hdcf:50.4,svPct:90.0,last10:[5,6,5,4,6,5,4,6,5,4]},
-  PHI:{gf:2.8,ga:3.2,pp:19.6,pk:78.2,cf:48.2,xgf:47.8,pdo:98.2,shots:29.2,hdcf:48.0,svPct:89.2,last10:[4,5,4,3,5,4,3,5,4,3]},
-  PIT:{gf:2.9,ga:3.1,pp:20.6,pk:79.4,cf:49.6,xgf:49.2,pdo:99.0,shots:30.0,hdcf:49.4,svPct:90.0,last10:[5,4,5,6,4,5,4,6,5,4]},
-  SJS:{gf:2.2,ga:3.8,pp:15.8,pk:74.4,cf:44.6,xgf:43.8,pdo:96.2,shots:26.8,hdcf:44.0,svPct:88.2,last10:[3,2,3,2,3,2,3,2,3,2]},
-  SEA:{gf:2.8,ga:2.9,pp:20.0,pk:80.6,cf:51.0,xgf:50.8,pdo:99.6,shots:30.4,hdcf:51.0,svPct:90.6,last10:[5,4,5,6,4,5,6,4,5,6]},
-  STL:{gf:2.9,ga:2.9,pp:20.4,pk:80.0,cf:50.4,xgf:50.0,pdo:99.8,shots:30.2,hdcf:50.2,svPct:90.8,last10:[5,4,5,4,6,5,4,5,6,5]},
-  TBL:{gf:3.2,ga:2.7,pp:22.0,pk:81.4,cf:53.6,xgf:54.2,pdo:101.6,shots:32.2,hdcf:54.4,svPct:91.6,last10:[6,7,6,7,6,7,6,7,6,7]},
-  TOR:{gf:3.3,ga:3.0,pp:22.0,pk:80.4,cf:52.8,xgf:53.4,pdo:100.8,shots:31.6,hdcf:53.6,svPct:90.8,last10:[6,7,6,5,7,6,5,7,6,5]},
-  VAN:{gf:3.1,ga:2.8,pp:21.6,pk:81.2,cf:52.6,xgf:52.2,pdo:100.4,shots:31.2,hdcf:52.4,svPct:91.4,last10:[5,6,7,5,6,7,5,6,7,5]},
-  VGK:{gf:3.2,ga:2.6,pp:22.2,pk:82.4,cf:54.2,xgf:54.8,pdo:101.8,shots:32.4,hdcf:55.0,svPct:91.8,last10:[7,6,7,6,7,6,7,6,7,6]},
-  WSH:{gf:3.0,ga:2.9,pp:21.0,pk:80.8,cf:51.4,xgf:51.0,pdo:100.2,shots:30.8,hdcf:51.2,svPct:90.2,last10:[6,5,6,5,6,5,6,5,6,5]},
-  WPG:{gf:3.2,ga:2.7,pp:22.4,pk:82.0,cf:53.4,xgf:53.6,pdo:101.4,shots:32.0,hdcf:53.8,svPct:91.4,last10:[6,7,6,7,6,7,6,7,6,7]},
-  ARI:{gf:2.4,ga:3.4,pp:17.8,pk:76.8,cf:46.4,xgf:45.8,pdo:97.4,shots:27.8,hdcf:46.2,svPct:89.4,last10:[3,4,3,4,3,4,3,4,3,4]}
-};function getNBALogo(n){const k=Object.keys(NBA_TEAM_IDS).find(k=>n.includes(k));const id=k?NBA_TEAM_IDS[k]:null;return id?`https://cdn.nba.com/logos/nba/${id}/global/L/logo.svg`:null;}
-function getNHLAbbr(name){return NHL_ABBRS[name]||name;}
-function getNHLLogo(name){return`https://assets.nhle.com/logos/nhl/svg/${getNHLAbbr(name)}_light.svg`;}
+  ANA:{gf:2.4,ga:3.5,pp:17.2,pk:76.4,cf:47.2,xgf:46.8,pdo:97.2,hdcf:47.1,svPct:89.2,last10:[3,4,3,5,2,4,3,2,4,3]},
+  BOS:{gf:3.4,ga:2.6,pp:22.4,pk:82.1,cf:54.1,xgf:55.2,pdo:101.8,hdcf:55.8,svPct:91.8,last10:[7,6,6,8,5,7,6,7,5,8]},
+  BUF:{gf:2.9,ga:3.1,pp:19.8,pk:78.6,cf:49.4,xgf:48.9,pdo:99.1,hdcf:49.2,svPct:90.1,last10:[5,4,5,6,4,5,4,5,6,4]},
+  CGY:{gf:2.8,ga:3.0,pp:20.1,pk:79.2,cf:50.2,xgf:49.8,pdo:99.4,hdcf:50.1,svPct:90.4,last10:[5,4,5,4,5,4,5,4,5,4]},
+  CAR:{gf:3.2,ga:2.5,pp:21.8,pk:83.4,cf:55.6,xgf:56.1,pdo:102.4,hdcf:56.2,svPct:92.4,last10:[7,6,7,8,6,7,6,8,7,6]},
+  CHI:{gf:2.3,ga:3.6,pp:16.8,pk:75.2,cf:45.8,xgf:44.9,pdo:96.8,hdcf:45.2,svPct:88.8,last10:[3,2,3,4,3,2,3,2,4,3]},
+  COL:{gf:3.6,ga:2.8,pp:24.2,pk:81.6,cf:53.8,xgf:54.4,pdo:101.2,hdcf:54.6,svPct:91.2,last10:[7,8,6,7,8,6,7,8,7,6]},
+  CBJ:{gf:2.5,ga:3.4,pp:18.4,pk:77.1,cf:46.9,xgf:46.2,pdo:97.6,hdcf:46.8,svPct:89.6,last10:[4,3,4,3,4,3,4,3,4,3]},
+  DAL:{gf:3.3,ga:2.4,pp:23.1,pk:84.2,cf:56.2,xgf:57.0,pdo:103.1,hdcf:57.1,svPct:92.1,last10:[7,8,7,6,8,7,8,7,6,8]},
+  DET:{gf:2.7,ga:3.2,pp:19.2,pk:78.0,cf:48.6,xgf:48.1,pdo:98.4,hdcf:48.4,svPct:90.4,last10:[4,5,4,5,4,5,4,5,4,5]},
+  EDM:{gf:3.5,ga:3.1,pp:26.4,pk:79.2,cf:52.4,xgf:53.1,pdo:100.6,hdcf:53.2,svPct:90.6,last10:[6,7,6,8,6,7,6,7,6,7]},
+  FLA:{gf:3.4,ga:2.7,pp:22.8,pk:82.6,cf:54.8,xgf:55.6,pdo:102.1,hdcf:55.9,svPct:92.1,last10:[7,6,7,8,6,7,8,6,7,8]},
+  LAK:{gf:3.1,ga:2.6,pp:20.4,pk:81.8,cf:53.2,xgf:53.8,pdo:101.4,hdcf:54.0,svPct:91.4,last10:[6,5,6,7,5,6,7,5,6,7]},
+  MIN:{gf:3.0,ga:2.8,pp:20.8,pk:80.4,cf:51.6,xgf:51.2,pdo:100.2,hdcf:51.4,svPct:90.2,last10:[5,6,5,6,5,6,5,6,5,6]},
+  MTL:{gf:2.6,ga:3.3,pp:18.8,pk:77.8,cf:47.4,xgf:47.0,pdo:98.0,hdcf:47.2,svPct:89.0,last10:[4,3,4,5,3,4,3,5,4,3]},
+  NSH:{gf:2.7,ga:3.1,pp:19.4,pk:78.4,cf:48.8,xgf:48.4,pdo:98.6,hdcf:48.6,svPct:90.6,last10:[4,5,4,4,5,4,5,4,4,5]},
+  NJD:{gf:2.8,ga:2.9,pp:20.2,pk:80.2,cf:50.8,xgf:50.4,pdo:99.8,hdcf:50.6,svPct:90.8,last10:[5,4,5,6,4,5,6,4,5,6]},
+  NYI:{gf:2.6,ga:2.9,pp:18.6,pk:80.8,cf:49.8,xgf:49.4,pdo:99.2,hdcf:49.6,svPct:90.2,last10:[4,5,4,5,4,5,4,5,4,5]},
+  NYR:{gf:3.3,ga:2.6,pp:22.6,pk:82.6,cf:54.4,xgf:55.0,pdo:102.2,hdcf:55.2,svPct:92.2,last10:[7,6,7,8,6,7,6,8,7,6]},
+  OTT:{gf:3.0,ga:3.0,pp:21.2,pk:79.8,cf:50.6,xgf:50.2,pdo:100.0,hdcf:50.4,svPct:90.0,last10:[5,6,5,4,6,5,4,6,5,4]},
+  PHI:{gf:2.8,ga:3.2,pp:19.6,pk:78.2,cf:48.2,xgf:47.8,pdo:98.2,hdcf:48.0,svPct:89.2,last10:[4,5,4,3,5,4,3,5,4,3]},
+  PIT:{gf:2.9,ga:3.1,pp:20.6,pk:79.4,cf:49.6,xgf:49.2,pdo:99.0,hdcf:49.4,svPct:90.0,last10:[5,4,5,6,4,5,4,6,5,4]},
+  SJS:{gf:2.2,ga:3.8,pp:15.8,pk:74.4,cf:44.6,xgf:43.8,pdo:96.2,hdcf:44.0,svPct:88.2,last10:[3,2,3,2,3,2,3,2,3,2]},
+  SEA:{gf:2.8,ga:2.9,pp:20.0,pk:80.6,cf:51.0,xgf:50.8,pdo:99.6,hdcf:51.0,svPct:90.6,last10:[5,4,5,6,4,5,6,4,5,6]},
+  STL:{gf:2.9,ga:2.9,pp:20.4,pk:80.0,cf:50.4,xgf:50.0,pdo:99.8,hdcf:50.2,svPct:90.8,last10:[5,4,5,4,6,5,4,5,6,5]},
+  TBL:{gf:3.2,ga:2.7,pp:22.0,pk:81.4,cf:53.6,xgf:54.2,pdo:101.6,hdcf:54.4,svPct:91.6,last10:[6,7,6,7,6,7,6,7,6,7]},
+  TOR:{gf:3.3,ga:3.0,pp:22.0,pk:80.4,cf:52.8,xgf:53.4,pdo:100.8,hdcf:53.6,svPct:90.8,last10:[6,7,6,5,7,6,5,7,6,5]},
+  VAN:{gf:3.1,ga:2.8,pp:21.6,pk:81.2,cf:52.6,xgf:52.2,pdo:100.4,hdcf:52.4,svPct:91.4,last10:[5,6,7,5,6,7,5,6,7,5]},
+  VGK:{gf:3.2,ga:2.6,pp:22.2,pk:82.4,cf:54.2,xgf:54.8,pdo:101.8,hdcf:55.0,svPct:91.8,last10:[7,6,7,6,7,6,7,6,7,6]},
+  WSH:{gf:3.0,ga:2.9,pp:21.0,pk:80.8,cf:51.4,xgf:51.0,pdo:100.2,hdcf:51.2,svPct:90.2,last10:[6,5,6,5,6,5,6,5,6,5]},
+  WPG:{gf:3.2,ga:2.7,pp:22.4,pk:82.0,cf:53.4,xgf:53.6,pdo:101.4,hdcf:53.8,svPct:91.4,last10:[6,7,6,7,6,7,6,7,6,7]},
+  ARI:{gf:2.4,ga:3.4,pp:17.8,pk:76.8,cf:46.4,xgf:45.8,pdo:97.4,hdcf:46.2,svPct:89.4,last10:[3,4,3,4,3,4,3,4,3,4]}
+};
+function getNBALogo(n){const k=Object.keys(NBA_TEAM_IDS).find(k=>n&&n.includes(k));const id=k?NBA_TEAM_IDS[k]:null;return id?`https://cdn.nba.com/logos/nba/${id}/global/L/logo.svg`:null;}
+function getNHLAbbr(name){if(!name)return"???";if(name.length<=3)return name.toUpperCase();return NHL_ABBRS[name]||name.split(" ").pop().substring(0,3).toUpperCase();}
+function getNHLLogo(name){const abbr=getNHLAbbr(name);return`https://assets.nhle.com/logos/nhl/svg/${abbr}_light.svg`;}
 function getNHLColor(abbr){return NHL_TEAM_COLORS[abbr]||"#0066cc";}
 function toQcTime(iso){if(!iso)return"";return new Date(iso).toLocaleTimeString("fr-CA",{hour:"2-digit",minute:"2-digit",timeZone:"America/Toronto"});}
 
@@ -102,7 +104,7 @@ function getNHLWinner(awayAbbr,homeAbbr,awayB2B=false,homeB2B=false){
 
 function getLiveWinProb(homeScore,awayScore,period,timeLeft,baseHomePct){
   const TOTAL=60,PM=20;
-  const[m,s]=timeLeft.split(":").map(Number);
+  const[m,s]=(timeLeft||"20:00").split(":").map(Number);
   const minLeft=m+s/60;
   const played=(period-1)*PM+(PM-minLeft);
   const pctPlayed=Math.min(1,played/TOTAL);
@@ -140,14 +142,14 @@ function getLiveSignalNBA(game){
   else if(edge>5&&conf>=40){type="OVER";label="📈 OVER";}
   else if(edge<-12&&conf>=55){type="STRONG_UNDER";label="❄️ STRONG UNDER";}
   else if(edge<-5&&conf>=40){type="UNDER";label="📉 UNDER";}
-  else{type="NEUTRAL";label="⚖️ NEUTRE";}
+  else{type="NEUTRAL";label:"⚖️ NEUTRE";}
   return{type,label,edge,confidence:conf,projection:proj};
 }
 
 function getNBAPreMatch(game,teamStats){
   if(!teamStats)return null;
-  const hKey=Object.keys(teamStats).find(k=>game.homeFull.includes(k)||k===game.home);
-  const aKey=Object.keys(teamStats).find(k=>game.awayFull.includes(k)||k===game.away);
+  const hKey=Object.keys(teamStats).find(k=>game.homeFull&&(game.homeFull.includes(k)||k===game.home));
+  const aKey=Object.keys(teamStats).find(k=>game.awayFull&&(game.awayFull.includes(k)||k===game.away));
   const hS=hKey?teamStats[hKey]:null;
   const aS=aKey?teamStats[aKey]:null;
   if(!hS?.ppg||!aS?.ppg)return null;
@@ -230,9 +232,9 @@ export default function App(){
   useEffect(()=>{fetchAll();const t=setInterval(fetchAll,30000);return()=>clearInterval(t);},[]);
 
   const liveNBA=nbaGames.filter(g=>g.isLive);
-  const upcomingNBA=nbaGames.filter(g=>!g.isLive);
+  const upcomingNBA=nbaGames.filter(g=>!g.isLive&&!g.isFinished);
   const liveNHL=nhlGames.filter(g=>g.isLive);
-  const upcomingNHL=nhlGames.filter(g=>!g.isLive);
+  const upcomingNHL=nhlGames.filter(g=>!g.isLive&&!g.isFinished);
   const timeStr=now.toLocaleTimeString("fr-CA",{hour:"2-digit",minute:"2-digit",second:"2-digit",timeZone:"America/Toronto"});
 
   return(
@@ -299,7 +301,7 @@ export default function App(){
                       <div style={{background:bg,border:`1px solid ${border}`,borderRadius:10,padding:"10px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                         <div>
                           <div style={{color:color,fontSize:13,fontWeight:900,marginBottom:2}}>{sig.label}</div>
-                          {sig.projection>0&&<div style={{color:"#888",fontSize:9}}>Proj: {sig.projection} {g.total?`| Ligne: ${g.total}`:""}</div>}
+                          {sig.projection>0&&<div style={{color:"#888",fontSize:9}}>Proj: {sig.projection} | Ligne: {g.total} | Edge: {sig.edge>0?"+":""}{sig.edge}</div>}
                         </div>
                         <Ring value={sig.confidence} color={color} size={52}/>
                       </div>
@@ -552,4 +554,3 @@ export default function App(){
     </div>
   );
 }
-
