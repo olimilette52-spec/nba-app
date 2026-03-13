@@ -13,37 +13,38 @@ const TEAM_IDS = {
   Jazz:1610612762, Wizards:1610612764
 };
 
+// Stats 2025-26 completes : ppg/oppg/pace/netRtg/eFG/tovPct/ts/orebPct/homePpg/awayPpg/last10/sos
 const TEAM_STATS = {
-  "Atlanta Hawks":{ppg:117.7,oppg:117.3,pace:102.1,netRtg:0.5,eFG:53.2,tovPct:13.4,ts:57.1,backToBack:false},
-  "Boston Celtics":{ppg:114.5,oppg:107.0,pace:94.8,netRtg:7.9,eFG:57.2,tovPct:11.8,ts:61.4,backToBack:false},
-  "Brooklyn Nets":{ppg:106.9,oppg:115.6,pace:96.6,netRtg:-9.0,eFG:49.2,tovPct:15.1,ts:53.1,backToBack:false},
-  "Charlotte Hornets":{ppg:116.2,oppg:112.5,pace:97.3,netRtg:3.7,eFG:54.8,tovPct:13.2,ts:58.2,backToBack:false},
-  "Chicago Bulls":{ppg:115.5,oppg:119.7,pace:101.7,netRtg:-4.2,eFG:52.1,tovPct:13.8,ts:55.9,backToBack:false},
-  "Cleveland Cavaliers":{ppg:119.1,oppg:114.9,pace:100.2,netRtg:4.2,eFG:56.4,tovPct:12.1,ts:60.1,backToBack:false},
-  "Dallas Mavericks":{ppg:113.3,oppg:117.7,pace:101.6,netRtg:-4.3,eFG:52.8,tovPct:13.6,ts:56.4,backToBack:false},
-  "Denver Nuggets":{ppg:120.2,oppg:116.5,pace:97.9,netRtg:3.7,eFG:56.8,tovPct:12.4,ts:60.6,backToBack:false},
-  "Detroit Pistons":{ppg:116.8,oppg:109.6,pace:99.6,netRtg:7.2,eFG:54.6,tovPct:13.2,ts:58.4,backToBack:false},
-  "Golden State Warriors":{ppg:115.0,oppg:113.9,pace:99.4,netRtg:1.1,eFG:53.8,tovPct:13.6,ts:57.6,backToBack:false},
-  "Houston Rockets":{ppg:114.5,oppg:109.3,pace:96.0,netRtg:5.4,eFG:54.2,tovPct:12.8,ts:58.1,backToBack:false},
-  "Indiana Pacers":{ppg:111.4,oppg:119.9,pace:101.0,netRtg:-8.3,eFG:51.8,tovPct:14.2,ts:55.4,backToBack:false},
-  "LA Clippers":{ppg:113.8,oppg:114.2,pace:98.2,netRtg:-0.4,eFG:52.6,tovPct:12.6,ts:56.8,backToBack:false},
-  "Los Angeles Lakers":{ppg:116.4,oppg:114.8,pace:99.8,netRtg:1.6,eFG:54.1,tovPct:13.4,ts:57.8,backToBack:false},
-  "Memphis Grizzlies":{ppg:117.2,oppg:118.4,pace:101.4,netRtg:-1.2,eFG:53.4,tovPct:14.2,ts:57.2,backToBack:false},
-  "Miami Heat":{ppg:109.8,oppg:112.4,pace:96.4,netRtg:-2.6,eFG:51.2,tovPct:12.8,ts:55.1,backToBack:false},
-  "Milwaukee Bucks":{ppg:118.6,oppg:116.2,pace:101.2,netRtg:2.4,eFG:55.2,tovPct:13.1,ts:59.1,backToBack:false},
-  "Minnesota Timberwolves":{ppg:112.8,oppg:108.6,pace:97.4,netRtg:4.2,eFG:53.2,tovPct:12.6,ts:57.2,backToBack:false},
-  "New Orleans Pelicans":{ppg:109.2,oppg:118.6,pace:98.6,netRtg:-9.4,eFG:50.2,tovPct:14.8,ts:53.8,backToBack:false},
-  "New York Knicks":{ppg:119.8,oppg:112.4,pace:97.2,netRtg:7.4,eFG:56.2,tovPct:11.4,ts:60.2,backToBack:false},
-  "Oklahoma City Thunder":{ppg:119.4,oppg:106.8,pace:99.6,netRtg:12.6,eFG:57.4,tovPct:11.2,ts:61.2,backToBack:false},
-  "Orlando Magic":{ppg:108.4,oppg:106.2,pace:95.8,netRtg:2.2,eFG:51.8,tovPct:12.4,ts:55.4,backToBack:false},
-  "Philadelphia 76ers":{ppg:107.8,oppg:114.6,pace:97.6,netRtg:-6.8,eFG:50.4,tovPct:14.6,ts:54.2,backToBack:false},
-  "Phoenix Suns":{ppg:112.6,oppg:116.8,pace:99.2,netRtg:-4.2,eFG:52.4,tovPct:13.8,ts:56.2,backToBack:false},
-  "Portland Trail Blazers":{ppg:108.2,oppg:119.6,pace:100.4,netRtg:-11.4,eFG:49.2,tovPct:15.8,ts:52.8,backToBack:false},
-  "Sacramento Kings":{ppg:117.4,oppg:116.2,pace:102.8,netRtg:1.2,eFG:54.6,tovPct:13.2,ts:58.2,backToBack:false},
-  "San Antonio Spurs":{ppg:110.4,oppg:120.6,pace:100.2,netRtg:-10.2,eFG:50.2,tovPct:15.4,ts:53.8,backToBack:false},
-  "Toronto Raptors":{ppg:109.6,oppg:118.2,pace:98.4,netRtg:-8.6,eFG:50.8,tovPct:14.4,ts:54.4,backToBack:false},
-  "Utah Jazz":{ppg:107.8,oppg:121.4,pace:100.6,netRtg:-13.6,eFG:49.4,tovPct:15.6,ts:52.6,backToBack:false},
-  "Washington Wizards":{ppg:105.8,oppg:122.6,pace:99.8,netRtg:-16.8,eFG:48.2,tovPct:16.4,ts:51.8,backToBack:false}
+  "Atlanta Hawks":{ppg:117.7,oppg:117.3,pace:102.1,netRtg:0.5,eFG:53.2,tovPct:13.4,ts:57.1,orebPct:24.8,homePpg:119.2,awayPpg:116.1,homeOppg:115.8,awayOppg:118.8,last10W:6,sos:-0.35,backToBack:false},
+  "Boston Celtics":{ppg:114.5,oppg:107.0,pace:94.8,netRtg:7.9,eFG:57.2,tovPct:11.8,ts:61.4,orebPct:25.6,homePpg:116.2,awayPpg:112.8,homeOppg:104.8,awayOppg:109.2,last10W:6,sos:-1.81,backToBack:false},
+  "Brooklyn Nets":{ppg:106.9,oppg:115.6,pace:96.6,netRtg:-9.0,eFG:49.2,tovPct:15.1,ts:53.1,orebPct:22.1,homePpg:108.4,awayPpg:105.4,homeOppg:113.2,awayOppg:118.0,last10W:2,sos:0.76,backToBack:false},
+  "Charlotte Hornets":{ppg:116.2,oppg:112.5,pace:97.3,netRtg:3.7,eFG:54.8,tovPct:13.2,ts:58.2,orebPct:23.6,homePpg:118.4,awayPpg:114.0,homeOppg:110.2,awayOppg:114.8,last10W:5,sos:0.11,backToBack:false},
+  "Chicago Bulls":{ppg:115.5,oppg:119.7,pace:101.7,netRtg:-4.2,eFG:52.1,tovPct:13.8,ts:55.9,orebPct:23.4,homePpg:117.2,awayPpg:113.8,homeOppg:117.4,awayOppg:122.0,last10W:4,sos:-0.06,backToBack:false},
+  "Cleveland Cavaliers":{ppg:119.1,oppg:114.9,pace:100.2,netRtg:4.2,eFG:56.4,tovPct:12.1,ts:60.1,orebPct:25.2,homePpg:121.8,awayPpg:116.4,homeOppg:112.2,awayOppg:117.6,last10W:7,sos:-0.74,backToBack:false},
+  "Dallas Mavericks":{ppg:113.3,oppg:117.7,pace:101.6,netRtg:-4.3,eFG:52.8,tovPct:13.6,ts:56.4,orebPct:24.2,homePpg:115.6,awayPpg:111.0,homeOppg:115.2,awayOppg:120.2,last10W:3,sos:-0.16,backToBack:false},
+  "Denver Nuggets":{ppg:120.2,oppg:116.5,pace:97.9,netRtg:3.7,eFG:56.8,tovPct:12.4,ts:60.6,orebPct:27.1,homePpg:123.4,awayPpg:117.0,homeOppg:113.8,awayOppg:119.2,last10W:6,sos:-1.28,backToBack:false},
+  "Detroit Pistons":{ppg:116.8,oppg:109.6,pace:99.6,netRtg:7.2,eFG:54.6,tovPct:13.2,ts:58.4,orebPct:24.8,homePpg:119.2,awayPpg:114.4,homeOppg:107.2,awayOppg:112.0,last10W:7,sos:-1.37,backToBack:false},
+  "Golden State Warriors":{ppg:115.0,oppg:113.9,pace:99.4,netRtg:1.1,eFG:53.8,tovPct:13.6,ts:57.6,orebPct:24.2,homePpg:117.8,awayPpg:112.2,homeOppg:111.4,awayOppg:116.4,last10W:5,sos:0.13,backToBack:false},
+  "Houston Rockets":{ppg:114.5,oppg:109.3,pace:96.0,netRtg:5.4,eFG:54.2,tovPct:12.8,ts:58.1,orebPct:27.8,homePpg:116.8,awayPpg:112.2,homeOppg:106.8,awayOppg:111.8,last10W:7,sos:-1.3,backToBack:false},
+  "Indiana Pacers":{ppg:111.4,oppg:119.9,pace:101.0,netRtg:-8.3,eFG:51.8,tovPct:14.2,ts:55.4,orebPct:24.6,homePpg:113.8,awayPpg:109.0,homeOppg:117.4,awayOppg:122.4,last10W:2,sos:1.08,backToBack:false},
+  "LA Clippers":{ppg:113.8,oppg:114.2,pace:98.2,netRtg:-0.4,eFG:52.6,tovPct:12.6,ts:56.8,orebPct:23.4,homePpg:116.2,awayPpg:111.4,homeOppg:111.8,awayOppg:116.6,last10W:5,sos:0.13,backToBack:false},
+  "Los Angeles Lakers":{ppg:116.4,oppg:114.8,pace:99.8,netRtg:1.6,eFG:54.1,tovPct:13.4,ts:57.8,orebPct:25.8,homePpg:118.8,awayPpg:114.0,homeOppg:112.4,awayOppg:117.2,last10W:6,sos:-0.42,backToBack:false},
+  "Memphis Grizzlies":{ppg:117.2,oppg:118.4,pace:101.4,netRtg:-1.2,eFG:53.4,tovPct:14.2,ts:57.2,orebPct:27.2,homePpg:119.8,awayPpg:114.6,homeOppg:116.2,awayOppg:120.6,last10W:5,sos:0.22,backToBack:false},
+  "Miami Heat":{ppg:109.8,oppg:112.4,pace:96.4,netRtg:-2.6,eFG:51.2,tovPct:12.8,ts:55.1,orebPct:23.2,homePpg:112.4,awayPpg:107.2,homeOppg:109.8,awayOppg:115.0,last10W:4,sos:0.18,backToBack:false},
+  "Milwaukee Bucks":{ppg:118.6,oppg:116.2,pace:101.2,netRtg:2.4,eFG:55.2,tovPct:13.1,ts:59.1,orebPct:25.6,homePpg:121.4,awayPpg:115.8,homeOppg:113.6,awayOppg:118.8,last10W:6,sos:-0.52,backToBack:false},
+  "Minnesota Timberwolves":{ppg:112.8,oppg:108.6,pace:97.4,netRtg:4.2,eFG:53.2,tovPct:12.6,ts:57.2,orebPct:24.4,homePpg:115.4,awayPpg:110.2,homeOppg:105.8,awayOppg:111.4,last10W:6,sos:-0.88,backToBack:false},
+  "New Orleans Pelicans":{ppg:109.2,oppg:118.6,pace:98.6,netRtg:-9.4,eFG:50.2,tovPct:14.8,ts:53.8,orebPct:24.8,homePpg:111.8,awayPpg:106.6,homeOppg:116.2,awayOppg:121.0,last10W:3,sos:0.42,backToBack:false},
+  "New York Knicks":{ppg:119.8,oppg:112.4,pace:97.2,netRtg:7.4,eFG:56.2,tovPct:11.4,ts:60.2,orebPct:25.2,homePpg:122.6,awayPpg:117.0,homeOppg:109.8,awayOppg:115.0,last10W:7,sos:-0.62,backToBack:false},
+  "Oklahoma City Thunder":{ppg:119.4,oppg:106.8,pace:99.6,netRtg:12.6,eFG:57.4,tovPct:11.2,ts:61.2,orebPct:26.2,homePpg:122.2,awayPpg:116.6,homeOppg:104.2,awayOppg:109.4,last10W:8,sos:-1.12,backToBack:false},
+  "Orlando Magic":{ppg:108.4,oppg:106.2,pace:95.8,netRtg:2.2,eFG:51.8,tovPct:12.4,ts:55.4,orebPct:26.4,homePpg:110.8,awayPpg:106.0,homeOppg:103.6,awayOppg:108.8,last10W:5,sos:-0.28,backToBack:false},
+  "Philadelphia 76ers":{ppg:107.8,oppg:114.6,pace:97.6,netRtg:-6.8,eFG:50.4,tovPct:14.6,ts:54.2,orebPct:24.2,homePpg:110.4,awayPpg:105.2,homeOppg:112.2,awayOppg:117.0,last10W:4,sos:0.62,backToBack:false},
+  "Phoenix Suns":{ppg:112.6,oppg:116.8,pace:99.2,netRtg:-4.2,eFG:52.4,tovPct:13.8,ts:56.2,orebPct:23.6,homePpg:115.2,awayPpg:110.0,homeOppg:114.4,awayOppg:119.2,last10W:4,sos:0.34,backToBack:false},
+  "Portland Trail Blazers":{ppg:108.2,oppg:119.6,pace:100.4,netRtg:-11.4,eFG:49.2,tovPct:15.8,ts:52.8,orebPct:22.6,homePpg:110.8,awayPpg:105.6,homeOppg:117.2,awayOppg:122.0,last10W:2,sos:0.88,backToBack:false},
+  "Sacramento Kings":{ppg:117.4,oppg:116.2,pace:102.8,netRtg:1.2,eFG:54.6,tovPct:13.2,ts:58.2,orebPct:24.4,homePpg:120.2,awayPpg:114.6,homeOppg:113.8,awayOppg:118.6,last10W:5,sos:-0.18,backToBack:false},
+  "San Antonio Spurs":{ppg:110.4,oppg:120.6,pace:100.2,netRtg:-10.2,eFG:50.2,tovPct:15.4,ts:53.8,orebPct:23.8,homePpg:112.8,awayPpg:108.0,homeOppg:118.2,awayOppg:123.0,last10W:2,sos:0.44,backToBack:false},
+  "Toronto Raptors":{ppg:109.6,oppg:118.2,pace:98.4,netRtg:-8.6,eFG:50.8,tovPct:14.4,ts:54.4,orebPct:23.2,homePpg:112.2,awayPpg:107.0,homeOppg:115.8,awayOppg:120.6,last10W:3,sos:0.28,backToBack:false},
+  "Utah Jazz":{ppg:107.8,oppg:121.4,pace:100.6,netRtg:-13.6,eFG:49.4,tovPct:15.6,ts:52.6,orebPct:24.6,homePpg:110.4,awayPpg:105.2,homeOppg:119.0,awayOppg:123.8,last10W:2,sos:0.52,backToBack:false},
+  "Washington Wizards":{ppg:105.8,oppg:122.6,pace:99.8,netRtg:-16.8,eFG:48.2,tovPct:16.4,ts:51.8,orebPct:22.4,homePpg:108.2,awayPpg:103.4,homeOppg:120.2,awayOppg:125.0,last10W:2,sos:0.14,backToBack:false}
 };
 
 function getLogoUrl(teamName){
@@ -67,7 +68,8 @@ function qMult(q,tl){const r=pt(tl);if(q===4&&r<2)return 0.65;if(q===4&&r<4)retu
 
 function getStats(fullName){
   if(!fullName) return null;
-  return TEAM_STATS[Object.keys(TEAM_STATS).find(k=>fullName.includes(k.split(" ").pop()))||""]||null;
+  const key=Object.keys(TEAM_STATS).find(k=>fullName.includes(k.split(" ").pop()));
+  return key?TEAM_STATS[key]:null;
 }
 
 function getPreMatchPrediction(game){
@@ -75,19 +77,30 @@ function getPreMatchPrediction(game){
   const a=getStats(game.awayFull);
   if(!h||!a) return null;
 
-  // BASE : ppg/oppg
-  const homeExpected=(h.ppg+a.oppg)/2+1.6;
-  const awayExpected=(a.ppg+h.oppg)/2;
+  // BASE home/away split
+  const homeExpected=(h.homePpg+a.awayOppg)/2+1.6;
+  const awayExpected=(a.awayPpg+h.homeOppg)/2;
   let proj=homeExpected+awayExpected;
 
-  // Ajustement pace (leger)
+  // Ajustement pace
   proj+=((h.pace+a.pace)/2-98.5)*0.8;
 
-  // Ajustement stats avancees (max +/- 3pts total)
+  // Stats avancees (max +/- 4pts)
   const efgAdj=((h.eFG+a.eFG)/2-53.5)*0.08;
   const tovAdj=-((h.tovPct+a.tovPct)/2-13)*0.12;
   const tsAdj=((h.ts+a.ts)/2-57.5)*0.06;
-  proj+=Math.max(-3,Math.min(3,efgAdj+tovAdj+tsAdj));
+  const orebAdj=((h.orebPct+a.orebPct)/2-25)*0.04;
+  proj+=Math.max(-4,Math.min(4,efgAdj+tovAdj+tsAdj+orebAdj));
+
+  // Forme recente last10
+  const hForm=h.last10W/10;
+  const aForm=a.last10W/10;
+  const formAdj=((hForm+aForm)/2-0.5)*3;
+  proj+=Math.max(-2,Math.min(2,formAdj));
+
+  // SOS — equipe qui a eu calendrier difficile est plus fatiguee
+  const sosAdj=-((h.sos+a.sos)/2)*0.5;
+  proj+=Math.max(-1.5,Math.min(1.5,sosAdj));
 
   // Back-to-back
   if(h.backToBack) proj-=3.5;
@@ -99,33 +112,36 @@ function getPreMatchPrediction(game){
   const projDiff=homeProjScore-awayProjScore;
   const winner=homeProjScore>=awayProjScore?game.home:game.away;
 
-  // Spread — corrige: couvre si la difference proj depasse le spread
+  // Spread — favoris en rouge, underdog en vert
   let spreadCover=null;
   if(game.spread!=null&&game.spreadTeam){
     const favoriteIsHome=game.home===game.spreadTeam||(game.homeFull&&game.homeFull.includes(game.spreadTeam));
     if(favoriteIsHome){
-      if(projDiff>=Math.abs(game.spread)){
-        spreadCover={team:game.home,label:`${game.home} -${Math.abs(game.spread)} COUVRE`};
-      } else {
-        spreadCover={team:game.away,label:`${game.away} +${Math.abs(game.spread)} COUVRE`};
-      }
+      const covers=projDiff>=Math.abs(game.spread);
+      spreadCover={
+        team:covers?game.home:game.away,
+        label:covers?`${game.home} -${Math.abs(game.spread)} COUVRE`:`${game.away} +${Math.abs(game.spread)} COUVRE`,
+        isFavorite:covers
+      };
     } else {
       const awayDiff=awayProjScore-homeProjScore;
-      if(awayDiff>=Math.abs(game.spread)){
-        spreadCover={team:game.away,label:`${game.away} -${Math.abs(game.spread)} COUVRE`};
-      } else {
-        spreadCover={team:game.home,label:`${game.home} +${Math.abs(game.spread)} COUVRE`};
-      }
+      const covers=awayDiff>=Math.abs(game.spread);
+      spreadCover={
+        team:covers?game.away:game.home,
+        label:covers?`${game.away} -${Math.abs(game.spread)} COUVRE`:`${game.home} +${Math.abs(game.spread)} COUVRE`,
+        isFavorite:covers
+      };
     }
   }
 
   return{
     proj:+proj.toFixed(1),
     homeProjScore,awayProjScore,projDiff,winner,spreadCover,
-    homePpg:h.ppg,awayPpg:a.ppg,
-    homeOppg:h.oppg,awayOppg:a.oppg,
+    homePpg:h.homePpg,awayPpg:a.awayPpg,
+    homeOppg:h.homeOppg,awayOppg:a.awayOppg,
     homeNetRtg:h.netRtg,awayNetRtg:a.netRtg,
     homeB2B:h.backToBack,awayB2B:a.backToBack,
+    homeLast10:h.last10W,awayLast10:a.last10W,
   };
 }
 
@@ -187,6 +203,7 @@ function PreMatchCard({game}){
           <div>
             <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span>
             {pred?.awayB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>B2B</div>}
+            {pred&&<div style={{color:"#888",fontSize:8}}>L10: {pred.awayLast10}-{10-pred.awayLast10}</div>}
           </div>
         </div>
         <div style={{textAlign:"center"}}>
@@ -197,6 +214,7 @@ function PreMatchCard({game}){
           <div style={{textAlign:"right"}}>
             <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span>
             {pred?.homeB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>B2B</div>}
+            {pred&&<div style={{color:"#888",fontSize:8}}>L10: {pred.homeLast10}-{10-pred.homeLast10}</div>}
           </div>
           <TeamLogo name={game.homeFull} size={36}/>
         </div>
@@ -256,7 +274,13 @@ function PreMatchCard({game}){
                   <div style={{background:homeSpread>0?"#00aa5515":"#ff330015",border:`1px solid ${homeSpread>0?"#00aa5530":"#ff330030"}`,borderRadius:6,padding:"3px 8px",color:homeSpread>0?"#007733":"#cc3300",fontSize:10,fontWeight:800}}>{game.home} {homeSpread>0?"+":""}{homeSpread}</div>
                 </div>
                 {pred.spreadCover&&(
-                  <div style={{background:"#00aa5515",border:"1px solid #00aa5530",borderRadius:6,padding:"3px 8px",color:"#007733",fontSize:10,fontWeight:800}}>
+                  <div style={{
+                    background:pred.spreadCover.isFavorite?"#ff330015":"#00aa5515",
+                    border:`1px solid ${pred.spreadCover.isFavorite?"#ff330025":"#00aa5530"}`,
+                    borderRadius:6,padding:"3px 8px",
+                    color:pred.spreadCover.isFavorite?"#cc3300":"#007733",
+                    fontSize:10,fontWeight:800
+                  }}>
                     {pred.spreadCover.label}
                   </div>
                 )}
