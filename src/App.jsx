@@ -13,7 +13,41 @@ const TEAM_IDS = {
   Jazz:1610612762, Wizards:1610612764
 };
 
+const TEAM_STATS = {
+  "Atlanta Hawks":{ppg:117.7,oppg:117.3,pace:102.1,netRtg:0.5,eFG:53.2,tovPct:13.4,ts:57.1,backToBack:false},
+  "Boston Celtics":{ppg:114.5,oppg:107.0,pace:94.8,netRtg:7.9,eFG:57.2,tovPct:11.8,ts:61.4,backToBack:false},
+  "Brooklyn Nets":{ppg:106.9,oppg:115.6,pace:96.6,netRtg:-9.0,eFG:49.2,tovPct:15.1,ts:53.1,backToBack:false},
+  "Charlotte Hornets":{ppg:116.2,oppg:112.5,pace:97.3,netRtg:3.7,eFG:54.8,tovPct:13.2,ts:58.2,backToBack:false},
+  "Chicago Bulls":{ppg:115.5,oppg:119.7,pace:101.7,netRtg:-4.2,eFG:52.1,tovPct:13.8,ts:55.9,backToBack:false},
+  "Cleveland Cavaliers":{ppg:119.1,oppg:114.9,pace:100.2,netRtg:4.2,eFG:56.4,tovPct:12.1,ts:60.1,backToBack:false},
+  "Dallas Mavericks":{ppg:113.3,oppg:117.7,pace:101.6,netRtg:-4.3,eFG:52.8,tovPct:13.6,ts:56.4,backToBack:false},
+  "Denver Nuggets":{ppg:120.2,oppg:116.5,pace:97.9,netRtg:3.7,eFG:56.8,tovPct:12.4,ts:60.6,backToBack:false},
+  "Detroit Pistons":{ppg:116.8,oppg:109.6,pace:99.6,netRtg:7.2,eFG:54.6,tovPct:13.2,ts:58.4,backToBack:false},
+  "Golden State Warriors":{ppg:115.0,oppg:113.9,pace:99.4,netRtg:1.1,eFG:53.8,tovPct:13.6,ts:57.6,backToBack:false},
+  "Houston Rockets":{ppg:114.5,oppg:109.3,pace:96.0,netRtg:5.4,eFG:54.2,tovPct:12.8,ts:58.1,backToBack:false},
+  "Indiana Pacers":{ppg:111.4,oppg:119.9,pace:101.0,netRtg:-8.3,eFG:51.8,tovPct:14.2,ts:55.4,backToBack:false},
+  "LA Clippers":{ppg:113.8,oppg:114.2,pace:98.2,netRtg:-0.4,eFG:52.6,tovPct:12.6,ts:56.8,backToBack:false},
+  "Los Angeles Lakers":{ppg:116.4,oppg:114.8,pace:99.8,netRtg:1.6,eFG:54.1,tovPct:13.4,ts:57.8,backToBack:false},
+  "Memphis Grizzlies":{ppg:117.2,oppg:118.4,pace:101.4,netRtg:-1.2,eFG:53.4,tovPct:14.2,ts:57.2,backToBack:false},
+  "Miami Heat":{ppg:109.8,oppg:112.4,pace:96.4,netRtg:-2.6,eFG:51.2,tovPct:12.8,ts:55.1,backToBack:false},
+  "Milwaukee Bucks":{ppg:118.6,oppg:116.2,pace:101.2,netRtg:2.4,eFG:55.2,tovPct:13.1,ts:59.1,backToBack:false},
+  "Minnesota Timberwolves":{ppg:112.8,oppg:108.6,pace:97.4,netRtg:4.2,eFG:53.2,tovPct:12.6,ts:57.2,backToBack:false},
+  "New Orleans Pelicans":{ppg:109.2,oppg:118.6,pace:98.6,netRtg:-9.4,eFG:50.2,tovPct:14.8,ts:53.8,backToBack:false},
+  "New York Knicks":{ppg:119.8,oppg:112.4,pace:97.2,netRtg:7.4,eFG:56.2,tovPct:11.4,ts:60.2,backToBack:false},
+  "Oklahoma City Thunder":{ppg:119.4,oppg:106.8,pace:99.6,netRtg:12.6,eFG:57.4,tovPct:11.2,ts:61.2,backToBack:false},
+  "Orlando Magic":{ppg:108.4,oppg:106.2,pace:95.8,netRtg:2.2,eFG:51.8,tovPct:12.4,ts:55.4,backToBack:false},
+  "Philadelphia 76ers":{ppg:107.8,oppg:114.6,pace:97.6,netRtg:-6.8,eFG:50.4,tovPct:14.6,ts:54.2,backToBack:false},
+  "Phoenix Suns":{ppg:112.6,oppg:116.8,pace:99.2,netRtg:-4.2,eFG:52.4,tovPct:13.8,ts:56.2,backToBack:false},
+  "Portland Trail Blazers":{ppg:108.2,oppg:119.6,pace:100.4,netRtg:-11.4,eFG:49.2,tovPct:15.8,ts:52.8,backToBack:false},
+  "Sacramento Kings":{ppg:117.4,oppg:116.2,pace:102.8,netRtg:1.2,eFG:54.6,tovPct:13.2,ts:58.2,backToBack:false},
+  "San Antonio Spurs":{ppg:110.4,oppg:120.6,pace:100.2,netRtg:-10.2,eFG:50.2,tovPct:15.4,ts:53.8,backToBack:false},
+  "Toronto Raptors":{ppg:109.6,oppg:118.2,pace:98.4,netRtg:-8.6,eFG:50.8,tovPct:14.4,ts:54.4,backToBack:false},
+  "Utah Jazz":{ppg:107.8,oppg:121.4,pace:100.6,netRtg:-13.6,eFG:49.4,tovPct:15.6,ts:52.6,backToBack:false},
+  "Washington Wizards":{ppg:105.8,oppg:122.6,pace:99.8,netRtg:-16.8,eFG:48.2,tovPct:16.4,ts:51.8,backToBack:false}
+};
+
 function getLogoUrl(teamName){
+  if(!teamName) return null;
   const fullName=Object.keys(TEAM_IDS).find(k=>teamName.includes(k));
   const id=fullName?TEAM_IDS[fullName]:null;
   return id?`https://cdn.nba.com/logos/nba/${id}/global/L/logo.svg`:null;
@@ -21,7 +55,7 @@ function getLogoUrl(teamName){
 
 function toQcTime(isoDate){
   if(!isoDate) return "";
-  const d = new Date(isoDate);
+  const d=new Date(isoDate);
   return d.toLocaleTimeString("fr-CA",{hour:"2-digit",minute:"2-digit",timeZone:"America/Toronto"});
 }
 
@@ -31,61 +65,67 @@ function played(q,tl){return(q-1)*Q+(Q-pt(tl));}
 function remaining(q,tl){return Math.max(0,TOTAL_MIN-played(q,tl));}
 function qMult(q,tl){const r=pt(tl);if(q===4&&r<2)return 0.65;if(q===4&&r<4)return 0.78;if(q===4)return 0.90;return 1.0;}
 
-function getPreMatchPrediction(game, teamStats){
-  if(!teamStats) return null;
-  const hKey=Object.keys(teamStats).find(k=>game.homeFull.includes(k)||k===game.home);
-  const aKey=Object.keys(teamStats).find(k=>game.awayFull.includes(k)||k===game.away);
-  const hStats=hKey?teamStats[hKey]:null;
-  const aStats=aKey?teamStats[aKey]:null;
-  if(!hStats?.ppg||!aStats?.ppg) return null;
+function getStats(fullName){
+  if(!fullName) return null;
+  return TEAM_STATS[Object.keys(TEAM_STATS).find(k=>fullName.includes(k.split(" ").pop()))||""]||null;
+}
 
-  const homeExpected = (hStats.ppg + aStats.oppg) / 2 + 1.6;
-  const awayExpected = (aStats.ppg + hStats.oppg) / 2;
-  let proj = homeExpected + awayExpected;
+function getPreMatchPrediction(game){
+  const h=getStats(game.homeFull);
+  const a=getStats(game.awayFull);
+  if(!h||!a) return null;
 
-  if(hStats.pace && aStats.pace){
-    const avgPace = (hStats.pace + aStats.pace) / 2;
-    const leaguePace = 98.5;
-    proj += (avgPace - leaguePace) * 0.8;
-  }
+  // BASE : ppg/oppg
+  const homeExpected=(h.ppg+a.oppg)/2+1.6;
+  const awayExpected=(a.ppg+h.oppg)/2;
+  let proj=homeExpected+awayExpected;
 
-  if(hStats.recentPts && aStats.recentPts){
-    const recentAvg = (hStats.recentPts + aStats.recentPts) / 2;
-    proj = proj * 0.65 + recentAvg * 0.35;
-  }
+  // Ajustement pace (leger)
+  proj+=((h.pace+a.pace)/2-98.5)*0.8;
 
-  if(hStats.backToBack) proj -= 3.5;
-  if(aStats.backToBack) proj -= 3.5;
+  // Ajustement stats avancees (max +/- 3pts total)
+  const efgAdj=((h.eFG+a.eFG)/2-53.5)*0.08;
+  const tovAdj=-((h.tovPct+a.tovPct)/2-13)*0.12;
+  const tsAdj=((h.ts+a.ts)/2-57.5)*0.06;
+  proj+=Math.max(-3,Math.min(3,efgAdj+tovAdj+tsAdj));
 
-  const ratio = homeExpected / (homeExpected + awayExpected);
-  const homeProjScore = Math.round(proj * ratio);
-  const awayProjScore = Math.round(proj - homeProjScore);
-  const projDiff = homeProjScore - awayProjScore;
+  // Back-to-back
+  if(h.backToBack) proj-=3.5;
+  if(a.backToBack) proj-=3.5;
 
-  let spreadCover = null;
-  if(game.spread !== null && game.spreadTeam){
-    const favoriteIsHome = game.home === game.spreadTeam || game.homeFull.includes(game.spreadTeam);
+  const ratio=homeExpected/(homeExpected+awayExpected);
+  const homeProjScore=Math.round(proj*ratio);
+  const awayProjScore=Math.round(proj-homeProjScore);
+  const projDiff=homeProjScore-awayProjScore;
+  const winner=homeProjScore>=awayProjScore?game.home:game.away;
+
+  // Spread — corrige: couvre si la difference proj depasse le spread
+  let spreadCover=null;
+  if(game.spread!=null&&game.spreadTeam){
+    const favoriteIsHome=game.home===game.spreadTeam||(game.homeFull&&game.homeFull.includes(game.spreadTeam));
     if(favoriteIsHome){
-      const covers = projDiff >= Math.abs(game.spread);
-      spreadCover = covers ? {team: game.home, covers: true} : {team: game.away, covers: true, isUnderdog: true};
+      if(projDiff>=Math.abs(game.spread)){
+        spreadCover={team:game.home,label:`${game.home} -${Math.abs(game.spread)} COUVRE`};
+      } else {
+        spreadCover={team:game.away,label:`${game.away} +${Math.abs(game.spread)} COUVRE`};
+      }
     } else {
-      const awayDiff = awayProjScore - homeProjScore;
-      const covers = awayDiff >= Math.abs(game.spread);
-      spreadCover = covers ? {team: game.away, covers: true} : {team: game.home, covers: true, isUnderdog: true};
+      const awayDiff=awayProjScore-homeProjScore;
+      if(awayDiff>=Math.abs(game.spread)){
+        spreadCover={team:game.away,label:`${game.away} -${Math.abs(game.spread)} COUVRE`};
+      } else {
+        spreadCover={team:game.home,label:`${game.home} +${Math.abs(game.spread)} COUVRE`};
+      }
     }
   }
 
-  const winner = homeProjScore >= awayProjScore ? game.home : game.away;
-
   return{
-    proj: +proj.toFixed(1),
-    homeProjScore, awayProjScore,
-    homePpg: hStats.ppg, awayPpg: aStats.ppg,
-    homeOppg: hStats.oppg, awayOppg: aStats.oppg,
-    homeB2B: hStats.backToBack, awayB2B: aStats.backToBack,
-    recentUsed: !!(hStats.recentPts && aStats.recentPts),
-    paceUsed: !!(hStats.pace && aStats.pace),
-    projDiff, spreadCover, winner,
+    proj:+proj.toFixed(1),
+    homeProjScore,awayProjScore,projDiff,winner,spreadCover,
+    homePpg:h.ppg,awayPpg:a.ppg,
+    homeOppg:h.oppg,awayOppg:a.oppg,
+    homeNetRtg:h.netRtg,awayNetRtg:a.netRtg,
+    homeB2B:h.backToBack,awayB2B:a.backToBack,
   };
 }
 
@@ -131,15 +171,14 @@ function Ring({value,color,size=56}){
 function TeamLogo({name,size=32}){
   const url=getLogoUrl(name);
   if(!url)return<span style={{fontSize:size*0.7}}>🏀</span>;
-  return<img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display='none'}/>;
+  return<img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display="none"}/>;
 }
 
-function PreMatchCard({game, teamStats}){
-  const pred = getPreMatchPrediction(game, teamStats);
-  const favoriteIsHome = game.spreadTeam && (game.home === game.spreadTeam || game.homeFull.includes(game.spreadTeam));
-  const homeSpread = game.spread ? (favoriteIsHome ? -Math.abs(game.spread) : +Math.abs(game.spread)) : null;
-  const awaySpread = game.spread ? (favoriteIsHome ? +Math.abs(game.spread) : -Math.abs(game.spread)) : null;
-
+function PreMatchCard({game}){
+  const pred=getPreMatchPrediction(game);
+  const favoriteIsHome=game.spreadTeam&&(game.home===game.spreadTeam||(game.homeFull&&game.homeFull.includes(game.spreadTeam)));
+  const homeSpread=game.spread?(favoriteIsHome?-Math.abs(game.spread):+Math.abs(game.spread)):null;
+  const awaySpread=game.spread?(favoriteIsHome?+Math.abs(game.spread):-Math.abs(game.spread)):null;
   return(
     <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:13,padding:"15px 17px",boxShadow:"0 1px 6px #00000008"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
@@ -163,26 +202,24 @@ function PreMatchCard({game, teamStats}){
         </div>
       </div>
       <div style={{background:"#f4f4f4",borderRadius:10,padding:"10px 12px"}}>
-        {pred ? (
+        {pred?(
           <>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
               <div style={{textAlign:"center"}}>
                 <div style={{color:"#777",fontSize:8,fontFamily:"monospace"}}>MOY {game.away}</div>
                 <div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.awayPpg}</div>
-                {pred.awayOppg&&<div style={{color:"#aaa",fontSize:8}}>DEF {pred.awayOppg}</div>}
+                <div style={{color:"#aaa",fontSize:8}}>DEF {pred.awayOppg}</div>
+                <div style={{color:pred.awayNetRtg>0?"#007733":"#cc3300",fontSize:8,fontWeight:700}}>NET {pred.awayNetRtg>0?"+":""}{pred.awayNetRtg}</div>
               </div>
               <div style={{textAlign:"center"}}>
                 <div style={{color:"#777",fontSize:8,fontFamily:"monospace"}}>PROJECTION</div>
                 <div style={{color:"#7c3aed",fontSize:20,fontWeight:900}}>{pred.proj}</div>
-                <div style={{color:"#bbb",fontSize:7}}>
-                  {pred.paceUsed&&"pace "}
-                  {pred.recentUsed&&"forme"}
-                </div>
               </div>
               <div style={{textAlign:"center"}}>
                 <div style={{color:"#777",fontSize:8,fontFamily:"monospace"}}>MOY {game.home}</div>
                 <div style={{color:"#111",fontSize:16,fontWeight:800}}>{pred.homePpg}</div>
-                {pred.homeOppg&&<div style={{color:"#aaa",fontSize:8}}>DEF {pred.homeOppg}</div>}
+                <div style={{color:"#aaa",fontSize:8}}>DEF {pred.homeOppg}</div>
+                <div style={{color:pred.homeNetRtg>0?"#007733":"#cc3300",fontSize:8,fontWeight:700}}>NET {pred.homeNetRtg>0?"+":""}{pred.homeNetRtg}</div>
               </div>
             </div>
             <div style={{background:"#ffffff",border:"1px solid #e0e0e0",borderRadius:8,padding:"8px 12px",marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -212,22 +249,22 @@ function PreMatchCard({game, teamStats}){
                 </div>
               </div>
             )}
-            {game.spread!==null&&game.spreadTeam&&homeSpread!==null&&(
+            {game.spread!=null&&game.spreadTeam&&homeSpread!=null&&(
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div style={{display:"flex",gap:8,alignItems:"center"}}>
                   <div style={{background:awaySpread>0?"#00aa5515":"#ff330015",border:`1px solid ${awaySpread>0?"#00aa5530":"#ff330030"}`,borderRadius:6,padding:"3px 8px",color:awaySpread>0?"#007733":"#cc3300",fontSize:10,fontWeight:800}}>{game.away} {awaySpread>0?"+":""}{awaySpread}</div>
                   <div style={{background:homeSpread>0?"#00aa5515":"#ff330015",border:`1px solid ${homeSpread>0?"#00aa5530":"#ff330030"}`,borderRadius:6,padding:"3px 8px",color:homeSpread>0?"#007733":"#cc3300",fontSize:10,fontWeight:800}}>{game.home} {homeSpread>0?"+":""}{homeSpread}</div>
                 </div>
                 {pred.spreadCover&&(
-                  <div style={{background:pred.spreadCover.covers?"#00aa5515":"#ff330015",border:`1px solid ${pred.spreadCover.covers?"#00aa5530":"#ff330025"}`,borderRadius:6,padding:"3px 8px",color:pred.spreadCover.covers?"#007733":"#cc3300",fontSize:10,fontWeight:800}}>
-                    {pred.spreadCover.covers?`${pred.spreadCover.team} COUVRE`:`${pred.spreadCover.team} NE COUVRE PAS`}
+                  <div style={{background:"#00aa5515",border:"1px solid #00aa5530",borderRadius:6,padding:"3px 8px",color:"#007733",fontSize:10,fontWeight:800}}>
+                    {pred.spreadCover.label}
                   </div>
                 )}
               </div>
             )}
           </>
         ):(
-          <div style={{color:"#aaa",fontSize:9,fontFamily:"monospace",textAlign:"center",padding:"8px 0"}}>Stats en chargement...</div>
+          <div style={{color:"#aaa",fontSize:9,fontFamily:"monospace",textAlign:"center",padding:"8px 0"}}>Stats non disponibles</div>
         )}
       </div>
     </div>
@@ -286,31 +323,22 @@ function LiveCard({game,selected,onSelect}){
 
 export default function App(){
   const[games,setGames]=useState([]);
-  const[teamStats,setTeamStats]=useState(null);
   const[selectedId,setSelectedId]=useState(null);
   const[status,setStatus]=useState("loading");
   const[lastUpdate,setLastUpdate]=useState(null);
 
-  const loadData = async()=>{
+  const loadData=async()=>{
     try{
-      const scoresRes = await fetch(`${PROXY}/nba/scores`);
-      const scores = await scoresRes.json();
-      if(!Array.isArray(scores)) throw new Error("bad scores");
+      const res=await fetch(`${PROXY}/nba/scores`);
+      const scores=await res.json();
+      if(!Array.isArray(scores)) throw new Error("bad");
       setGames(scores);
       if(!selectedId&&scores.length>0){
         setSelectedId((scores.find(g=>g.isLive)||scores[0]).id);
       }
-      const now = new Date().toLocaleTimeString("fr-CA",{timeZone:"America/Toronto"});
-      setLastUpdate(now);
+      setLastUpdate(new Date().toLocaleTimeString("fr-CA",{timeZone:"America/Toronto"}));
       setStatus("ok");
-      try{
-        const statsRes = await fetch(`${PROXY}/nba/stats`);
-        const stats = await statsRes.json();
-        setTeamStats(stats);
-      }catch{}
-    }catch(e){
-      setStatus("error");
-    }
+    }catch(e){setStatus("error");}
   };
 
   useEffect(()=>{loadData();const iv=setInterval(loadData,30000);return()=>clearInterval(iv);},[]);
@@ -389,7 +417,7 @@ export default function App(){
           {scheduledGames.length>0&&(
             <>
               <div style={{color:"#555",fontSize:8,letterSpacing:3,paddingLeft:3,fontWeight:700,marginTop:4}}>PREDICTIONS PRE-MATCH</div>
-              {scheduledGames.map(g=><PreMatchCard key={g.id} game={g} teamStats={teamStats}/>)}
+              {scheduledGames.map(g=><PreMatchCard key={g.id} game={g}/>)}
             </>
           )}
           {games.length===0&&(
