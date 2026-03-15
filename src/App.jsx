@@ -13,7 +13,6 @@ const TEAM_IDS = {
   Jazz:1610612762, Wizards:1610612764
 };
 
-// Stats 2025-26 completes : ppg/oppg/pace/netRtg/eFG/tovPct/ts/orebPct/homePpg/awayPpg/last10/sos
 const TEAM_STATS = {
   "Atlanta Hawks":{ppg:117.7,oppg:117.3,pace:102.1,netRtg:0.5,eFG:53.2,tovPct:13.4,ts:57.1,orebPct:24.8,homePpg:119.2,awayPpg:116.1,homeOppg:115.8,awayOppg:118.8,last10W:6,sos:-0.35,backToBack:false},
   "Boston Celtics":{ppg:114.5,oppg:107.0,pace:94.8,netRtg:7.9,eFG:57.2,tovPct:11.8,ts:61.4,orebPct:25.6,homePpg:116.2,awayPpg:112.8,homeOppg:104.8,awayOppg:109.2,last10W:6,sos:-1.81,backToBack:false},
@@ -47,6 +46,18 @@ const TEAM_STATS = {
   "Washington Wizards":{ppg:105.8,oppg:122.6,pace:99.8,netRtg:-16.8,eFG:48.2,tovPct:16.4,ts:51.8,orebPct:22.4,homePpg:108.2,awayPpg:103.4,homeOppg:120.2,awayOppg:125.0,last10W:2,sos:0.14,backToBack:false}
 };
 
+// Impact blessures par joueur (points retires de la projection)
+const INJURY_IMPACT = {
+  "Stephen Curry":8,"LeBron James":7,"Giannis Antetokounmpo":9,"Joel Embiid":9,
+  "Nikola Jokic":9,"Luka Doncic":9,"Kevin Durant":8,"Jayson Tatum":8,
+  "Damian Lillard":7,"Kyrie Irving":7,"Anthony Davis":8,"Kawhi Leonard":7,
+  "Paul George":6,"Devin Booker":7,"Trae Young":6,"Donovan Mitchell":7,
+  "Ja Morant":7,"Zion Williamson":6,"Anthony Edwards":8,"Shai Gilgeous-Alexander":8,
+  "Tyrese Haliburton":6,"Darius Garland":6,"Bam Adebayo":6,"Karl-Anthony Towns":7,
+  "Tyrese Maxey":6,"Jalen Brunson":7,"Cade Cunningham":7,"Paolo Banchero":6,
+  "Victor Wembanyama":8,"Dereck Lively II":4,"Keegan Murray":4
+};
+
 function getLogoUrl(teamName){
   if(!teamName) return null;
   const fullName=Object.keys(TEAM_IDS).find(k=>teamName.includes(k));
@@ -72,65 +83,69 @@ function getStats(fullName){
   return key?TEAM_STATS[key]:null;
 }
 
-function getPreMatchPrediction(game){
+function getInjuryAdj(teamFull, injuries){
+  if(!injuries||!teamFull) return{adj:0,players:[]};
+  const teamInjuries=injuries[teamFull]||[];
+  let adj=0;
+  const players=[];
+  teamInjuries.forEach(p=>{
+    const impact=INJURY_IMPACT[p.name]||0;
+    if(impact>0){
+      adj+=impact;
+      players.push({name:p.name,impact,status:p.status});
+    }
+  });
+  return{adj:Math.min(adj,15),players};
+}
+
+function getPreMatchPrediction(game, injuries){
   const h=getStats(game.homeFull);
   const a=getStats(game.awayFull);
   if(!h||!a) return null;
 
-  // BASE home/away split
   const homeExpected=(h.homePpg+a.awayOppg)/2+1.6;
   const awayExpected=(a.awayPpg+h.homeOppg)/2;
   let proj=homeExpected+awayExpected;
 
-  // Ajustement pace
   proj+=((h.pace+a.pace)/2-98.5)*0.8;
 
-  // Stats avancees (max +/- 4pts)
   const efgAdj=((h.eFG+a.eFG)/2-53.5)*0.08;
   const tovAdj=-((h.tovPct+a.tovPct)/2-13)*0.12;
   const tsAdj=((h.ts+a.ts)/2-57.5)*0.06;
   const orebAdj=((h.orebPct+a.orebPct)/2-25)*0.04;
   proj+=Math.max(-4,Math.min(4,efgAdj+tovAdj+tsAdj+orebAdj));
 
-  // Forme recente last10
   const hForm=h.last10W/10;
   const aForm=a.last10W/10;
-  const formAdj=((hForm+aForm)/2-0.5)*3;
-  proj+=Math.max(-2,Math.min(2,formAdj));
+  proj+=Math.max(-2,Math.min(2,((hForm+aForm)/2-0.5)*3));
+  proj+=Math.max(-1.5,Math.min(1.5,-((h.sos+a.sos)/2)*0.5));
 
-  // SOS — equipe qui a eu calendrier difficile est plus fatiguee
-  const sosAdj=-((h.sos+a.sos)/2)*0.5;
-  proj+=Math.max(-1.5,Math.min(1.5,sosAdj));
-
-  // Back-to-back
   if(h.backToBack) proj-=3.5;
   if(a.backToBack) proj-=3.5;
 
+  // Ajustement blessures
+  const homeInj=getInjuryAdj(game.homeFull,injuries);
+  const awayInj=getInjuryAdj(game.awayFull,injuries);
+  proj-=(homeInj.adj+awayInj.adj);
+
   const ratio=homeExpected/(homeExpected+awayExpected);
-  const homeProjScore=Math.round(proj*ratio);
-  const awayProjScore=Math.round(proj-homeProjScore);
+  const homeProjBase=proj*ratio;
+  const awayProjBase=proj-homeProjBase;
+  const homeProjScore=Math.round(homeProjBase-homeInj.adj*0.6);
+  const awayProjScore=Math.round(awayProjBase-awayInj.adj*0.6);
   const projDiff=homeProjScore-awayProjScore;
   const winner=homeProjScore>=awayProjScore?game.home:game.away;
 
-  // Spread — favoris en rouge, underdog en vert
   let spreadCover=null;
   if(game.spread!=null&&game.spreadTeam){
     const favoriteIsHome=game.home===game.spreadTeam||(game.homeFull&&game.homeFull.includes(game.spreadTeam));
     if(favoriteIsHome){
       const covers=projDiff>=Math.abs(game.spread);
-      spreadCover={
-        team:covers?game.home:game.away,
-        label:covers?`${game.home} -${Math.abs(game.spread)} COUVRE`:`${game.away} +${Math.abs(game.spread)} COUVRE`,
-        isFavorite:covers
-      };
+      spreadCover={team:covers?game.home:game.away,label:covers?`${game.home} -${Math.abs(game.spread)} COUVRE`:`${game.away} +${Math.abs(game.spread)} COUVRE`,isFavorite:covers};
     } else {
       const awayDiff=awayProjScore-homeProjScore;
       const covers=awayDiff>=Math.abs(game.spread);
-      spreadCover={
-        team:covers?game.away:game.home,
-        label:covers?`${game.away} -${Math.abs(game.spread)} COUVRE`:`${game.home} +${Math.abs(game.spread)} COUVRE`,
-        isFavorite:covers
-      };
+      spreadCover={team:covers?game.away:game.home,label:covers?`${game.away} -${Math.abs(game.spread)} COUVRE`:`${game.home} +${Math.abs(game.spread)} COUVRE`,isFavorite:covers};
     }
   }
 
@@ -142,6 +157,7 @@ function getPreMatchPrediction(game){
     homeNetRtg:h.netRtg,awayNetRtg:a.netRtg,
     homeB2B:h.backToBack,awayB2B:a.backToBack,
     homeLast10:h.last10W,awayLast10:a.last10W,
+    homeInjuries:homeInj.players,awayInjuries:awayInj.players,
   };
 }
 
@@ -190,8 +206,8 @@ function TeamLogo({name,size=32}){
   return<img src={url} alt={name} style={{width:size,height:size,objectFit:"contain"}} onError={e=>e.target.style.display="none"}/>;
 }
 
-function PreMatchCard({game}){
-  const pred=getPreMatchPrediction(game);
+function PreMatchCard({game,injuries}){
+  const pred=getPreMatchPrediction(game,injuries);
   const favoriteIsHome=game.spreadTeam&&(game.home===game.spreadTeam||(game.homeFull&&game.homeFull.includes(game.spreadTeam)));
   const homeSpread=game.spread?(favoriteIsHome?-Math.abs(game.spread):+Math.abs(game.spread)):null;
   const awaySpread=game.spread?(favoriteIsHome?+Math.abs(game.spread):-Math.abs(game.spread)):null;
@@ -204,6 +220,9 @@ function PreMatchCard({game}){
             <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.away}</span>
             {pred?.awayB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>B2B</div>}
             {pred&&<div style={{color:"#888",fontSize:8}}>L10: {pred.awayLast10}-{10-pred.awayLast10}</div>}
+            {pred?.awayInjuries?.map((p,i)=>(
+              <div key={i} style={{color:"#cc3300",fontSize:7,fontWeight:700}}>OUT: {p.name} -{p.impact}pts</div>
+            ))}
           </div>
         </div>
         <div style={{textAlign:"center"}}>
@@ -215,6 +234,9 @@ function PreMatchCard({game}){
             <span style={{color:"#111",fontWeight:800,fontSize:15}}>{game.home}</span>
             {pred?.homeB2B&&<div style={{color:"#cc3300",fontSize:8,fontWeight:700}}>B2B</div>}
             {pred&&<div style={{color:"#888",fontSize:8}}>L10: {pred.homeLast10}-{10-pred.homeLast10}</div>}
+            {pred?.homeInjuries?.map((p,i)=>(
+              <div key={i} style={{color:"#cc3300",fontSize:7,fontWeight:700}}>OUT: {p.name} -{p.impact}pts</div>
+            ))}
           </div>
           <TeamLogo name={game.homeFull} size={36}/>
         </div>
@@ -274,13 +296,7 @@ function PreMatchCard({game}){
                   <div style={{background:homeSpread>0?"#00aa5515":"#ff330015",border:`1px solid ${homeSpread>0?"#00aa5530":"#ff330030"}`,borderRadius:6,padding:"3px 8px",color:homeSpread>0?"#007733":"#cc3300",fontSize:10,fontWeight:800}}>{game.home} {homeSpread>0?"+":""}{homeSpread}</div>
                 </div>
                 {pred.spreadCover&&(
-                  <div style={{
-                    background:pred.spreadCover.isFavorite?"#ff330015":"#00aa5515",
-                    border:`1px solid ${pred.spreadCover.isFavorite?"#ff330025":"#00aa5530"}`,
-                    borderRadius:6,padding:"3px 8px",
-                    color:pred.spreadCover.isFavorite?"#cc3300":"#007733",
-                    fontSize:10,fontWeight:800
-                  }}>
+                  <div style={{background:pred.spreadCover.isFavorite?"#ff330015":"#00aa5515",border:`1px solid ${pred.spreadCover.isFavorite?"#ff330025":"#00aa5530"}`,borderRadius:6,padding:"3px 8px",color:pred.spreadCover.isFavorite?"#cc3300":"#007733",fontSize:10,fontWeight:800}}>
                     {pred.spreadCover.label}
                   </div>
                 )}
@@ -347,6 +363,7 @@ function LiveCard({game,selected,onSelect}){
 
 export default function App(){
   const[games,setGames]=useState([]);
+  const[injuries,setInjuries]=useState({});
   const[selectedId,setSelectedId]=useState(null);
   const[status,setStatus]=useState("loading");
   const[lastUpdate,setLastUpdate]=useState(null);
@@ -362,6 +379,11 @@ export default function App(){
       }
       setLastUpdate(new Date().toLocaleTimeString("fr-CA",{timeZone:"America/Toronto"}));
       setStatus("ok");
+      try{
+        const injRes=await fetch(`${PROXY}/nba/injuries`);
+        const injData=await injRes.json();
+        setInjuries(injData);
+      }catch{}
     }catch(e){setStatus("error");}
   };
 
@@ -379,6 +401,7 @@ export default function App(){
         <span style={{background:"linear-gradient(135deg,#7c3aed,#00aa55)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",fontSize:16,fontWeight:900,letterSpacing:2}}>NBA BETTING SIGNALS</span>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           {lastUpdate&&<span style={{color:"#aaa",fontSize:8}}>↻ {lastUpdate}</span>}
+          {Object.keys(injuries).length>0&&<span style={{background:"#cc330015",border:"1px solid #cc330030",borderRadius:4,padding:"3px 9px",color:"#cc3300",fontSize:9,fontWeight:700}}>🤕 BLESSURES</span>}
           {liveGames.length>0&&<span style={{background:"#cc000015",border:"1px solid #cc000030",borderRadius:4,padding:"3px 9px",color:"#cc0000",fontSize:9,fontWeight:700}}>{liveGames.length} LIVE</span>}
         </div>
       </div>
@@ -441,7 +464,7 @@ export default function App(){
           {scheduledGames.length>0&&(
             <>
               <div style={{color:"#555",fontSize:8,letterSpacing:3,paddingLeft:3,fontWeight:700,marginTop:4}}>PREDICTIONS PRE-MATCH</div>
-              {scheduledGames.map(g=><PreMatchCard key={g.id} game={g}/>)}
+              {scheduledGames.map(g=><PreMatchCard key={g.id} game={g} injuries={injuries}/>)}
             </>
           )}
           {games.length===0&&(
